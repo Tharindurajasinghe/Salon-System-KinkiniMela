@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --font-display: "Playfair Display", serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reusable "shimmer" skeleton used by lazy-loaded lists while data loads. */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 37%, #f0f0f0 63%);
+  background-size: 500px 100%;
+}
+
+/* ---- Printing ----
+   Receipt prints at 80mm; the summary prints full width. Body class scoping
+   keeps the two rules from fighting each other. */
+@media print {
+  /* Receipt (default print) */
+  body:not(.print-summary) * { visibility: hidden !important; }
+  body:not(.print-summary) #receipt-print,
+  body:not(.print-summary) #receipt-print * { visibility: visible !important; }
+  body:not(.print-summary) #receipt-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+  }
+
+  /* Summary report */
+  body.print-summary * { visibility: hidden !important; }
+  body.print-summary #summary-print,
+  body.print-summary #summary-print * { visibility: visible !important; }
+  body.print-summary #summary-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+@page {
+  size: auto;
+  margin: 8mm;
+}
