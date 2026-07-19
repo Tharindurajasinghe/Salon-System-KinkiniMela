@@ -1,6 +1,7 @@
 import connectDB from "@/lib/db";
 import Order from "@/lib/models/Order";
 import Booking from "@/lib/models/Booking";
+import DressOrder from "@/lib/models/DressOrder";
 import { ok, fail, withErrorHandler } from "@/lib/utils/apiResponse";
 
 /**
@@ -12,11 +13,12 @@ async function handler(req) {
   const phone = new URL(req.url).searchParams.get("phone")?.trim();
   if (!phone) return fail("Enter your phone number", 400);
 
-  const [orders, bookings] = await Promise.all([
+  const [orders, bookings, dressOrders] = await Promise.all([
     Order.find({ "customer.phone": phone }).sort({ createdAt: -1 }).lean(),
     Booking.find({ "customer.phone": phone }).sort({ createdAt: -1 }).lean(),
+    DressOrder.find({ "customer.phone": phone }).sort({ createdAt: -1 }).lean(),
   ]);
 
-  return ok({ orders, bookings });
+  return ok({ orders, bookings, dressOrders });
 }
 export const GET = withErrorHandler(handler);

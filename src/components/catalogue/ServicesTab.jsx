@@ -16,7 +16,7 @@ import { api } from "@/lib/utils/apiClient";
 import { formatRs } from "@/lib/utils/currency";
 
 const EMPTY = {
-  name: "", category: "", price: "", profit: 0, timeSpendMin: 30,
+  name: "", category: "", cost: 0, sellingPrice: "", consultationNeeded: false, timeSpendMin: 30, maxBookings: 1,
   description: "", image: null, timeSlots: [], discount: { percentage: 0, note: "" }, active: true,
 };
 
@@ -43,8 +43,8 @@ export default function ServicesTab() {
     setModal({
       mode: "edit",
       data: {
-        id: s._id, name: s.name, category: s.category?._id || "", price: s.price,
-        profit: s.profit, timeSpendMin: s.timeSpendMin, description: s.description || "",
+        id: s._id, name: s.name, category: s.category?._id || "", cost: s.cost,
+        sellingPrice: s.sellingPrice, consultationNeeded: s.consultationNeeded, timeSpendMin: s.timeSpendMin, maxBookings: s.maxBookings || 1, description: s.description || "",
         image: s.image || null, timeSlots: s.timeSlots || [],
         discount: s.discount || { percentage: 0, note: "" }, active: s.active,
       },
@@ -54,7 +54,8 @@ export default function ServicesTab() {
   async function save() {
     const d = modal.data;
     if (!d.name.trim()) return setFormError("Name is required.");
-    if (d.price === "") return setFormError("Price is required.");
+    if (d.sellingPrice === "") return setFormError("Selling price is required.");
+    if (Number(d.sellingPrice) < Number(d.cost || 0)) return setFormError("Selling price cannot be below cost.");
     setSaving(true); setFormError("");
     try {
       const payload = { ...d, category: d.category || null };
@@ -80,7 +81,7 @@ export default function ServicesTab() {
       {rows === null ? <Loading /> : rows.length === 0 ? <Empty label="No services yet." /> : (
         <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white">
           <table className="w-full min-w-[880px] text-sm">
-            <THead cols={["", "Code", "Name", "Category", "Price", "Profit", "Time", "Slots", "Discount", "Active", ""]} />
+            <THead cols={["", "Code", "Name", "Category", "Cost", "Selling", "Time", "Slots", "Discount", "Active", ""]} />
             <tbody className="divide-y divide-gray-100">
               {rows.map((s) => (
                 <tr key={s._id} className="hover:bg-gray-50/60">
@@ -88,8 +89,8 @@ export default function ServicesTab() {
                   <Td className="font-mono text-xs text-gray-500">{s.code}</Td>
                   <Td className="font-medium text-gray-900">{s.name}</Td>
                   <Td className="text-gray-500">{s.category?.name || "—"}</Td>
-                  <Td>{formatRs(s.price, 0)}</Td>
-                  <Td>{formatRs(s.profit, 0)}</Td>
+                  <Td className="text-gray-500">{formatRs(s.cost, 0)}</Td>
+                  <Td>{formatRs(s.sellingPrice, 0)}</Td>
                   <Td>{s.timeSpendMin}m</Td>
                   <Td>{s.timeSlots?.length || 0}</Td>
                   <Td>{s.discount?.percentage ? `${s.discount.percentage}%` : "—"}</Td>
@@ -118,9 +119,14 @@ export default function ServicesTab() {
                 {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
               </Select>
               <Input label="Time spent (minutes)" type="number" min="0" value={modal.data.timeSpendMin} onChange={(e) => upd({ timeSpendMin: Number(e.target.value) })} />
-              <Input label="Price (Rs.)" type="number" min="0" value={modal.data.price} onChange={(e) => upd({ price: e.target.value })} />
-              <Input label="Profit (Rs.)" type="number" min="0" value={modal.data.profit} onChange={(e) => upd({ profit: Number(e.target.value) })} />
+              <Input label="Max bookings per slot" type="number" min="1" value={modal.data.maxBookings} onChange={(e) => upd({ maxBookings: Math.max(1, Number(e.target.value) || 1) })} />
+              <Input label="Cost (Rs.)" type="number" min="0" value={modal.data.cost} onChange={(e) => upd({ cost: Number(e.target.value) })} />
+              <Input label="Selling price (Rs.)" type="number" min="0" value={modal.data.sellingPrice} onChange={(e) => upd({ sellingPrice: e.target.value })} />
             </div>
+            <label className="flex items-center gap-3 rounded-xl border border-gray-100 p-3">
+              <Switch checked={modal.data.consultationNeeded} onChange={(v) => upd({ consultationNeeded: v })} />
+              <span className="text-sm text-gray-700">Consultation needed <span className="text-gray-400">(price may change; shown in red on the website)</span></span>
+            </label>
             <Input as="textarea" label="Description" value={modal.data.description} onChange={(e) => upd({ description: e.target.value })} />
             <div>
               <p className="mb-1.5 text-sm font-medium text-gray-700">Image</p>

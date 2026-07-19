@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 const CategorySchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    type: { type: String, enum: ["product", "service"], required: true },
+    type: { type: String, enum: ["product", "service", "dressjewelry"], required: true },
   },
   { timestamps: true }
 );

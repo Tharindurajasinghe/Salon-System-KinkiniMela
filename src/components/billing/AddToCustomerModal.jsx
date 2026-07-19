@@ -47,7 +47,7 @@ export default function AddToCustomerModal({ open, onClose, cart, discount, gran
     setSaving(true);
     try {
       const bill = await api.post("/api/bills", {
-        items: cart.map((l) => ({ kind: l.kind, refId: l.refId, qty: l.qty })),
+        items: cart.map((l) => ({ kind: l.kind, refId: l.refId, qty: l.qty, price: Number(l.unitPrice || 0), variantName: l.variantName, bringDate: l.bringDate, deliverDate: l.deliverDate })),
         discount: { type: discount.type, value: Number(discount.value || 0) },
         customerId: selected._id,
         firstInstallment: first,

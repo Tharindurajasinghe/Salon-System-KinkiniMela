@@ -1,10 +1,11 @@
 import connectDB from "@/lib/db";
-import Service from "@/lib/models/Service";
+import DressJewelry from "@/lib/models/DressJewelry";
 import { requireAuth, canAccess } from "@/lib/auth";
 import { nextId } from "@/lib/utils/idGenerator";
 import { cloudinaryService } from "@/lib/services/CloudinaryService";
 import { ok, created, fail, withErrorHandler } from "@/lib/utils/apiResponse";
 
+// Dress & jewelry lives under the "Our Services" page (key: services).
 function guard() {
   const { session, error } = requireAuth();
   if (error) return { error, status: 401 };
@@ -12,7 +13,7 @@ function guard() {
   return { session };
 }
 
-/** GET /api/services?q=&categoryId=&activeOnly= */
+/** GET /api/dressjewelry?q=&categoryId=&activeOnly= */
 async function getHandler(req) {
   const { error } = requireAuth();
   if (error) return fail(error, 401);
@@ -23,14 +24,25 @@ async function getHandler(req) {
   if (sp.get("categoryId")) query.category = sp.get("categoryId");
   if (sp.get("activeOnly") === "1") query.active = true;
 
-  const services = await Service.find(query)
-    .populate("category", "name")
-    .sort({ createdAt: -1 })
-    .lean();
-  return ok(services);
+  const items = await DressJewelry.find(query).populate("category", "name").sort({ createdAt: -1 }).lean();
+  return ok(items);
 }
 
-/** POST /api/services — create (auto id SRV######). */
+function cleanVariants(list, isDress) {
+  return (Array.isArray(list) ? list : [])
+    .filter((v) => v && v.name?.trim())
+    .map((v) => ({
+      name: v.name.trim(),
+      cost: Number(v.cost || 0),
+      sellingPrice: Number(v.sellingPrice || 0),
+      stock: Number(v.stock || 0),
+      fit1: isDress ? Number(v.fit1 || 0) : 0,
+      fit2: isDress ? Number(v.fit2 || 0) : 0,
+      fit3: isDress ? Number(v.fit3 || 0) : 0,
+    }));
+}
+
+/** POST /api/dressjewelry — create. */
 async function postHandler(req) {
   const g = guard();
   if (g.error) return fail(g.error, g.status);
@@ -38,28 +50,27 @@ async function postHandler(req) {
 
   const b = await req.json();
   if (!b.name?.trim()) return fail("Name is required", 400);
-  if (b.sellingPrice == null) return fail("Selling price is required", 400);
-  if (Number(b.sellingPrice) < Number(b.cost || 0)) return fail("Selling price cannot be below cost", 400);
+  const isDress = Boolean(b.isDress);
+  const variants = cleanVariants(b.variants, isDress);
+  if (variants.length === 0) return fail("Add at least one variant", 400);
+  for (const v of variants) if (v.sellingPrice < v.cost) return fail(`Variant "${v.name}" selling price is below cost`, 400);
 
-  const code = await nextId("SRV");
-  const service = await Service.create({
+  const code = await nextId("DRJ");
+  const item = await DressJewelry.create({
     code,
     name: b.name.trim(),
     category: b.category || null,
-    cost: Number(b.cost || 0),
-    sellingPrice: Number(b.sellingPrice),
-    consultationNeeded: Boolean(b.consultationNeeded),
     image: b.image || null,
     description: b.description || "",
-    discount: b.discount || {},
-    timeSpendMin: Number(b.timeSpendMin || 30),
-    timeSlots: Array.isArray(b.timeSlots) ? b.timeSlots : [],
-    maxBookings: Math.max(1, Number(b.maxBookings || 1)),
+    delayChargePerDay: Number(b.delayChargePerDay || 0),
+    isDress,
+    variants,
     active: b.active !== false,
   });
-  return created(service, "Service added");
+  return created(item, "Item added");
 }
 
+/** PUT /api/dressjewelry — update by { id, ...fields } */
 async function putHandler(req) {
   const g = guard();
   if (g.error) return fail(g.error, g.status);
@@ -68,32 +79,32 @@ async function putHandler(req) {
   const { id, ...fields } = await req.json();
   if (!id) return fail("id is required", 400);
 
+  if (fields.variants) fields.variants = cleanVariants(fields.variants, Boolean(fields.isDress));
+  if (fields.delayChargePerDay != null) fields.delayChargePerDay = Number(fields.delayChargePerDay);
+
   if (fields.image) {
-    const prev = await Service.findById(id).select("image").lean();
+    const prev = await DressJewelry.findById(id).select("image").lean();
     if (prev?.image?.publicId && prev.image.publicId !== fields.image.publicId) {
       cloudinaryService.destroy(prev.image.publicId).catch(() => {});
     }
   }
 
-  const service = await Service.findByIdAndUpdate(id, { $set: fields }, { new: true })
-    .populate("category", "name")
-    .lean();
-  if (!service) return fail("Service not found", 404);
-  return ok(service, "Service updated");
+  const item = await DressJewelry.findByIdAndUpdate(id, { $set: fields }, { new: true }).populate("category", "name").lean();
+  if (!item) return fail("Item not found", 404);
+  return ok(item, "Item updated");
 }
 
+/** DELETE /api/dressjewelry?id=... */
 async function deleteHandler(req) {
   const g = guard();
   if (g.error) return fail(g.error, g.status);
   await connectDB();
-
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return fail("id is required", 400);
-
-  const service = await Service.findById(id).select("image").lean();
-  if (service?.image?.publicId) cloudinaryService.destroy(service.image.publicId).catch(() => {});
-  await Service.findByIdAndDelete(id);
-  return ok(null, "Service removed");
+  const item = await DressJewelry.findById(id).select("image").lean();
+  if (item?.image?.publicId) cloudinaryService.destroy(item.image.publicId).catch(() => {});
+  await DressJewelry.findByIdAndDelete(id);
+  return ok(null, "Item removed");
 }
 
 export const GET = withErrorHandler(getHandler);

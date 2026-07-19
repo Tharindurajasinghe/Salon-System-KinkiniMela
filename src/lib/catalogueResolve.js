@@ -20,12 +20,12 @@ export async function resolveItem(kind, refId) {
   if (kind === "service") {
     const s = await Service.findById(refId).lean();
     if (!s) return null;
-    return { name: s.name, sellingPrice: s.price, cost: s.price - s.profit, image: s.image, active: s.active };
+    return { name: s.name, sellingPrice: s.sellingPrice, cost: s.cost, image: s.image, active: s.active };
   }
   if (kind === "package") {
     const p = await Package.findById(refId).lean();
     if (!p) return null;
-    return { name: p.name, sellingPrice: p.price, cost: p.price - p.profit, image: p.images?.[0] || null, active: p.active };
+    return { name: p.name, sellingPrice: p.sellingPrice, cost: p.cost, image: p.images?.[0] || null, active: p.active };
   }
   return null;
 }

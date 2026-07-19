@@ -36,14 +36,15 @@ async function postHandler(req) {
   if (!item) return fail("This item is no longer available", 400);
   if (!(item.timeSlots || []).includes(b.timeSlot)) return fail("That time slot is not available", 400);
 
-  // Slot must be free (no live booking already holding it).
-  const clash = await Booking.findOne({
+  // The slot can hold up to the item's maxBookings for this date + time slot.
+  const max = item.maxBookings || 1;
+  const slotCount = await Booking.countDocuments({
     itemRef: b.itemId,
     date: dateKey(b.date),
     timeSlot: b.timeSlot,
     status: { $in: ["pending", "confirm"] },
-  }).lean();
-  if (clash) return fail("Sorry, that time slot was just taken", 409);
+  });
+  if (slotCount >= max) return fail("Sorry, that time slot is fully booked", 409);
 
   const bookingId = await nextId("BOOK");
   let booking;
@@ -53,7 +54,7 @@ async function postHandler(req) {
       itemType: b.itemType,
       itemRef: b.itemId,
       itemName: item.name,
-      price: item.price,
+      price: item.sellingPrice,
       customer: {
         firstName: c.firstName.trim(),
         lastName: (c.lastName || "").trim(),

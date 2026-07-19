@@ -31,21 +31,25 @@ async function handler(req) {
 
   const item =
     itemType === "service"
-      ? await Service.findOne({ _id: itemId, active: true }).select("timeSlots").lean()
-      : await Package.findOne({ _id: itemId, active: true }).select("timeSlots").lean();
+      ? await Service.findOne({ _id: itemId, active: true }).select("timeSlots maxBookings").lean()
+      : await Package.findOne({ _id: itemId, active: true }).select("timeSlots maxBookings").lean();
   if (!item) return fail("Item not found", 404);
 
   const allSlots = item.timeSlots || [];
+  const max = item.maxBookings || 1;
 
-  // Slots already taken by a live booking for this item on this date.
+  // Count live bookings per slot for this item on this date; a slot is bookable
+  // until it reaches the item's max bookings for the same date + time slot.
   const taken = await Booking.find({
     itemRef: itemId,
     date: dateKey(date),
     status: { $in: ["pending", "confirm"] },
   }).select("timeSlot").lean();
-  const takenSet = new Set(taken.map((b) => b.timeSlot));
 
-  const available = allSlots.filter((s) => !takenSet.has(s));
+  const counts = {};
+  taken.forEach((b) => { counts[b.timeSlot] = (counts[b.timeSlot] || 0) + 1; });
+
+  const available = allSlots.filter((s) => (counts[s] || 0) < max);
   return ok({ available, allSlots });
 }
 export const GET = withErrorHandler(handler);

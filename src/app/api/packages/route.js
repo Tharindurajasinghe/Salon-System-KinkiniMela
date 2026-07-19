@@ -34,17 +34,20 @@ async function postHandler(req) {
 
   const b = await req.json();
   if (!b.name?.trim()) return fail("Name is required", 400);
-  if (b.price == null) return fail("Price is required", 400);
+  if (b.sellingPrice == null) return fail("Selling price is required", 400);
+  if (Number(b.sellingPrice) < Number(b.cost || 0)) return fail("Selling price cannot be below cost", 400);
 
   const images = Array.isArray(b.images) ? b.images.slice(0, 3) : [];
   const code = await nextId("PKG");
   const pkg = await Package.create({
     code,
     name: b.name.trim(),
-    price: Number(b.price),
-    profit: Number(b.profit || 0),
+    cost: Number(b.cost || 0),
+    sellingPrice: Number(b.sellingPrice),
+    consultationNeeded: Boolean(b.consultationNeeded),
     images,
     timeSlots: Array.isArray(b.timeSlots) ? b.timeSlots : [],
+    maxBookings: Math.max(1, Number(b.maxBookings || 1)),
     timeSpendMin: Number(b.timeSpendMin || 60),
     description: b.description || "",
     discount: b.discount || {},

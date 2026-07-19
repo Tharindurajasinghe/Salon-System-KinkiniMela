@@ -33,7 +33,7 @@ export default function PackagesPage() {
   const { visible, sentinelRef, hasMore } = useLazyReveal(list, 9);
 
   const pct = details?.discount?.percentage || 0;
-  const detailsFinal = details ? (pct ? details.price * (1 - pct / 100) : details.price) : 0;
+  const detailsFinal = details ? (pct ? details.sellingPrice * (1 - pct / 100) : details.sellingPrice) : 0;
 
   return (
     <div>
@@ -77,10 +77,14 @@ export default function PackagesPage() {
                 ))}
               </div>
             )}
+            <p className="text-[11px] uppercase tracking-wide text-gray-400">{t("common.startingFrom")}</p>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-semibold text-brand-600">{formatRs(detailsFinal, 0)}</span>
-              {pct > 0 && <span className="text-sm text-gray-400 line-through">{formatRs(details.price, 0)}</span>}
+              {pct > 0 && <span className="text-sm text-gray-400 line-through">{formatRs(details.sellingPrice, 0)}</span>}
             </div>
+            {details.consultationNeeded && (
+              <p className="mt-2 text-sm font-medium text-red-500">{t("common.consultationNote")}</p>
+            )}
             {details.timeSpendMin ? (
               <p className="mt-2 flex items-center gap-1.5 text-sm text-gray-500"><Clock className="h-4 w-4" /> {details.timeSpendMin} {t("common.minutes")}</p>
             ) : null}

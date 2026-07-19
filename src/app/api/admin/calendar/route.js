@@ -1,5 +1,6 @@
 import connectDB from "@/lib/db";
 import Booking from "@/lib/models/Booking";
+import DressOrder from "@/lib/models/DressOrder";
 import Holiday from "@/lib/models/Holiday";
 import { requireAuth, canAccess } from "@/lib/auth";
 import { currentMonthSLKey } from "@/lib/utils/timezone";
@@ -14,8 +15,9 @@ function guard() {
 
 /**
  * GET /api/admin/calendar?month=yyyy-MM
- * Returns the month's holidays and its bookings grouped by day, so the admin
+ * Returns the month's holidays plus its bookings grouped by day, so the admin
  * can see at a glance which days have appointments and which are off days.
+ * Dress/jewelry rentals are placed on their BRING date.
  */
 async function handler(req) {
   const g = guard();
@@ -24,15 +26,17 @@ async function handler(req) {
 
   const month = new URL(req.url).searchParams.get("month") || currentMonthSLKey();
 
-  const [holidays, bookings] = await Promise.all([
+  const [holidays, bookings, dressOrders] = await Promise.all([
     Holiday.find({ date: { $regex: `^${month}` } }).lean(),
     Booking.find({ date: { $regex: `^${month}` } }).sort({ timeSlot: 1 }).lean(),
+    DressOrder.find({ bringDate: { $regex: `^${month}` } }).sort({ bringDate: 1 }).lean(),
   ]);
 
-  // Group bookings by their date string.
+  // Group everything by its day string.
   const days = {};
   for (const b of bookings) {
     (days[b.date] ||= []).push({
+      type: "booking",
       bookingId: b.bookingId,
       itemType: b.itemType,
       itemName: b.itemName,
@@ -40,6 +44,18 @@ async function handler(req) {
       status: b.status,
       customerName: `${b.customer?.firstName || ""} ${b.customer?.lastName || ""}`.trim(),
       customerPhone: b.customer?.phone || "",
+    });
+  }
+  // Dress/jewelry rentals show on their BRING date.
+  for (const d of dressOrders) {
+    (days[d.bringDate] ||= []).push({
+      type: "dress",
+      bookingId: d.orderId,
+      itemName: `${d.itemName} - ${d.variantName} x${d.qty}`,
+      deliverDate: d.deliverDate,
+      status: d.status,
+      customerName: `${d.customer?.firstName || ""} ${d.customer?.lastName || ""}`.trim(),
+      customerPhone: d.customer?.phone || "",
     });
   }
 

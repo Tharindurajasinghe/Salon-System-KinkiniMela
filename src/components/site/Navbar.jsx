@@ -15,6 +15,7 @@ const LINKS = [
   { href: "/products", key: "nav.products" },
   { href: "/services", key: "nav.services" },
   { href: "/packages", key: "nav.packages" },
+  { href: "/dress-jewelry", key: "nav.dress" },
   { href: "/gallery", key: "nav.gallery" },
   { href: "/bookings", key: "nav.bookings" },
   { href: "/contact", key: "nav.contact" },

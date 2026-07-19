@@ -15,9 +15,10 @@ import { api } from "@/lib/utils/apiClient";
  */
 export default function CategoriesPage() {
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-3">
       <CategoryColumn type="product" title="Product categories" />
       <CategoryColumn type="service" title="Service categories" />
+      <CategoryColumn type="dressjewelry" title="Dress & Jewelry categories" />
     </div>
   );
 }

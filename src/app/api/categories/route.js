@@ -28,7 +28,7 @@ async function postHandler(req) {
 
   const { name, type } = await req.json();
   if (!name?.trim()) return fail("Category name is required", 400);
-  if (!["product", "service"].includes(type)) return fail("Invalid category type", 400);
+  if (!["product", "service", "dressjewelry"].includes(type)) return fail("Invalid category type", 400);
 
   const exists = await Category.findOne({ name: name.trim(), type });
   if (exists) return fail("That category already exists", 409);

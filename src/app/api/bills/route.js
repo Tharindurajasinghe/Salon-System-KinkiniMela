@@ -2,6 +2,7 @@ import connectDB from "@/lib/db";
 import Bill from "@/lib/models/Bill";
 import Product from "@/lib/models/Product";
 import Customer from "@/lib/models/Customer";
+import DressJewelry from "@/lib/models/DressJewelry";
 import { requireAuth, canAccess } from "@/lib/auth";
 import { nextId } from "@/lib/utils/idGenerator";
 import { resolveItem } from "@/lib/catalogueResolve";
@@ -17,11 +18,12 @@ function guard() {
 
 /**
  * POST /api/bills — record a POS sale.
- * Body: { items: [{ kind, refId, qty }], customerName, customerPhone,
- *         discount: { type, value }, cashPaid }
+ * Body: { items: [{ kind, refId, qty, price?, variantName?, bringDate?, deliverDate? }],
+ *         customerName, customerPhone, discount, cashPaid, customerId?, firstInstallment? }
  *
  * The server re-resolves every price/cost and recomputes all discount + profit
  * figures itself (never trusting client math) and decrements product stock.
+ * Dress/jewelry lines must be put on a customer account (credit).
  */
 async function postHandler(req) {
   const g = guard();
@@ -36,16 +38,49 @@ async function postHandler(req) {
   const resolved = [];
   for (const it of rawItems) {
     const qty = Math.max(1, Number(it.qty || 1));
+
+    // --- Dress / jewelry: resolve the chosen variant ---
+    if (it.kind === "dressjewelry") {
+      const dj = await DressJewelry.findById(it.refId).lean();
+      if (!dj) return fail("One of the items no longer exists", 400);
+      const variant = (dj.variants || []).find((v) => v.name === it.variantName);
+      if (!variant) return fail("Selected variant not found", 400);
+      const requested = it.price != null && Number.isFinite(Number(it.price)) ? Number(it.price) : variant.sellingPrice;
+      const sellingPrice = Math.max(variant.cost, requested);
+      resolved.push({
+        kind: "dressjewelry",
+        ref: dj._id,
+        name: `${dj.name} - ${variant.name}`,
+        sellingPrice,
+        cost: variant.cost,
+        qty,
+        variantName: variant.name,
+        bringDate: it.bringDate || null,
+        deliverDate: it.deliverDate || null,
+        delayChargePerDay: dj.delayChargePerDay || 0,
+      });
+      continue;
+    }
+
+    // --- Product / service / package ---
     const info = await resolveItem(it.kind, it.refId);
     if (!info) return fail("One of the items no longer exists", 400);
+    const requested = it.price != null && Number.isFinite(Number(it.price)) ? Number(it.price) : info.sellingPrice;
+    const sellingPrice = Math.max(info.cost, requested);
     resolved.push({
       kind: it.kind,
       ref: it.refId,
       name: info.name,
-      sellingPrice: info.sellingPrice,
+      sellingPrice,
       cost: info.cost,
       qty,
     });
+  }
+
+  // Any dress/jewelry line forces the bill onto a customer account.
+  const hasDress = resolved.some((r) => r.kind === "dressjewelry");
+  if (hasDress && !body.customerId) {
+    return fail("Dress/jewelry bills must be added to a customer", 400);
   }
 
   // Apply the bill-level discount using the spec formulas.
@@ -91,6 +126,10 @@ async function postHandler(req) {
       qty: l.qty,
       itemDiscount: l.itemDiscount,
       profitAfter: l.profitAfter,
+      variantName: l.variantName,
+      bringDate: l.bringDate,
+      deliverDate: l.deliverDate,
+      delayChargePerDay: l.delayChargePerDay,
     })),
     customerName: body.customerName || "",
     customerPhone: body.customerPhone || "",

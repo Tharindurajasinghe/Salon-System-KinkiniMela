@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Customer from "@/lib/models/Customer";
 import Bill from "@/lib/models/Bill";
 import { requireAuth, canAccess } from "@/lib/auth";
+import { todaySLKey } from "@/lib/utils/timezone";
 import { ok, created, fail, withErrorHandler } from "@/lib/utils/apiResponse";
 
 function guard() {
@@ -67,9 +68,31 @@ async function getHandler(req) {
     );
     history.sort((a, b) => new Date(b.at) - new Date(a.at));
 
-    const balanceDue = Math.round(creditBills.reduce((s, b) => s + b.balance, 0) * 100) / 100;
+    // Dress/jewelry rentals on the customer's bills: expose bring/deliver dates
+    // and auto-compute the delay charge (days overdue x per-day rate x qty).
+    const today = todaySLKey();
+    const reservations = [];
+    let delayTotal = 0;
+    bills.forEach((b) => {
+      (b.items || []).forEach((it) => {
+        if (it.kind === "dressjewelry" && it.deliverDate) {
+          const overdueDays = Math.max(0, daysBetween(it.deliverDate, today)); // today - deliverDate
+          const delayCharge = round2(overdueDays * (it.delayChargePerDay || 0) * (it.qty || 1));
+          delayTotal += delayCharge;
+          reservations.push({
+            billId: b.billId, name: it.name, variantName: it.variantName, qty: it.qty,
+            bringDate: it.bringDate, deliverDate: it.deliverDate,
+            delayChargePerDay: it.delayChargePerDay || 0, overdueDays, delayCharge,
+          });
+        }
+      });
+    });
+    delayTotal = round2(delayTotal);
 
-    return ok({ customer, creditBills, history, balanceDue });
+    const billBalance = round2(creditBills.reduce((s, b) => s + b.balance, 0));
+    const balanceDue = round2(billBalance + delayTotal);
+
+    return ok({ customer, creditBills, history, reservations, billBalance, delayTotal, balanceDue });
   }
 
   // ---- List / search ----
@@ -151,6 +174,13 @@ async function deleteHandler(req) {
   await Customer.findByIdAndDelete(id);
   return ok(null, "Customer removed");
 }
+
+// Whole days between two yyyy-MM-dd strings (b - a).
+function daysBetween(a, b) {
+  const ms = new Date(b + "T00:00:00") - new Date(a + "T00:00:00");
+  return Math.floor(ms / (24 * 60 * 60 * 1000));
+}
+function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
 
 export const GET = withErrorHandler(getHandler);
 export const POST = withErrorHandler(postHandler);

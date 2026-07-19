@@ -22,10 +22,10 @@ html {
    keeps the two rules from fighting each other. */
 @media print {
   /* Receipt (default print) */
-  body:not(.print-summary) * { visibility: hidden !important; }
-  body:not(.print-summary) #receipt-print,
-  body:not(.print-summary) #receipt-print * { visibility: visible !important; }
-  body:not(.print-summary) #receipt-print {
+  body:not(.print-summary):not(.print-invoice-a4):not(.print-statement-80) * { visibility: hidden !important; }
+  body:not(.print-summary):not(.print-invoice-a4):not(.print-statement-80) #receipt-print,
+  body:not(.print-summary):not(.print-invoice-a4):not(.print-statement-80) #receipt-print * { visibility: visible !important; }
+  body:not(.print-summary):not(.print-invoice-a4):not(.print-statement-80) #receipt-print {
     position: absolute;
     left: 0;
     top: 0;
@@ -41,6 +41,28 @@ html {
     left: 0;
     top: 0;
     width: 100%;
+  }
+
+  /* A4 customer invoice / statement */
+  body.print-invoice-a4 * { visibility: hidden !important; }
+  body.print-invoice-a4 #invoice-a4,
+  body.print-invoice-a4 #invoice-a4 * { visibility: visible !important; }
+  body.print-invoice-a4 #invoice-a4 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* 80mm customer statement */
+  body.print-statement-80 * { visibility: hidden !important; }
+  body.print-statement-80 #statement-80,
+  body.print-statement-80 #statement-80 * { visibility: visible !important; }
+  body.print-statement-80 #statement-80 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
   }
 }
 @page {

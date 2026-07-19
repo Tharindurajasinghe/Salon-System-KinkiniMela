@@ -9,7 +9,7 @@ async function handler(req) {
   const query = { active: true };
   if (sp.get("q")) query.name = { $regex: sp.get("q"), $options: "i" };
 
-  const packages = await Package.find(query).select("-profit").sort({ createdAt: -1 }).lean();
+  const packages = await Package.find(query).select("-cost").sort({ createdAt: -1 }).lean();
   return ok(packages);
 }
 export const GET = withErrorHandler(handler);

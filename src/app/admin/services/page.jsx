@@ -5,6 +5,7 @@ import Tabs from "@/components/ui/Tabs";
 import ProductsTab from "@/components/catalogue/ProductsTab";
 import ServicesTab from "@/components/catalogue/ServicesTab";
 import PackagesTab from "@/components/catalogue/PackagesTab";
+import DressJewelryTab from "@/components/catalogue/DressJewelryTab";
 
 /**
  * "Our Services" — the catalogue manager with three tabs:
@@ -20,6 +21,7 @@ export default function CataloguePage() {
           { key: "products", label: "Products" },
           { key: "services", label: "Services" },
           { key: "packages", label: "Packages" },
+          { key: "dressjewelry", label: "Dress & Jewelry" },
         ]}
         active={tab}
         onChange={setTab}
@@ -28,6 +30,7 @@ export default function CataloguePage() {
       {tab === "products" && <ProductsTab />}
       {tab === "services" && <ServicesTab />}
       {tab === "packages" && <PackagesTab />}
+      {tab === "dressjewelry" && <DressJewelryTab />}
     </div>
   );
 }

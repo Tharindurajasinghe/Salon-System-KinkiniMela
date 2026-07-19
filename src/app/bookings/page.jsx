@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Package, CalendarDays } from "lucide-react";
+import { Search, Package, CalendarDays, Gem } from "lucide-react";
 import PageHeader from "@/components/site/PageHeader";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
@@ -38,7 +38,7 @@ export default function BookingsPage() {
   }
 
   const statusLabel = (s) => t(`bookings.status.${s}`);
-  const empty = searched && result && result.orders.length === 0 && result.bookings.length === 0;
+  const empty = searched && result && result.orders.length === 0 && result.bookings.length === 0 && (result.dressOrders?.length || 0) === 0;
 
   return (
     <div>
@@ -85,6 +85,17 @@ export default function BookingsPage() {
                 sub={`${t("bookings.order")} · ${t("bookings.pickup")} ${o.pickupDate} · ${formatRs(o.total, 0)}`}
                 status={o.status}
                 statusLabel={statusLabel(o.status)}
+              />
+            ))}
+            {(result.dressOrders || []).map((d) => (
+              <Row
+                key={d._id}
+                Icon={Gem}
+                id={d.orderId}
+                title={`${d.itemName} - ${d.variantName} x${d.qty}`}
+                sub={`${t("dress.bringDate")} ${d.bringDate} · ${t("dress.deliverDate")} ${d.deliverDate}`}
+                status={d.status}
+                statusLabel={statusLabel(d.status)}
               />
             ))}
           </div>

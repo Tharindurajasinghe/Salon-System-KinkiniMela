@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Ban, CalendarClock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Ban, CalendarClock, Gem } from "lucide-react";
 import clsx from "clsx";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
@@ -142,10 +142,16 @@ export default function CalendarPage() {
           <ul className="space-y-2">
             {selectedBookings.map((b) => (
               <li key={b.bookingId} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand-50 text-brand-500"><CalendarClock className="h-4 w-4" /></span>
+                <span className={clsx("grid h-9 w-9 place-items-center rounded-lg", b.type === "dress" ? "bg-amber-100 text-amber-600" : "bg-brand-50 text-brand-500")}>
+                  {b.type === "dress" ? <Gem className="h-4 w-4" /> : <CalendarClock className="h-4 w-4" />}
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-1 text-sm font-medium text-gray-900">{b.itemName}</p>
-                  <p className="text-xs text-gray-500">{b.timeSlot} · {b.customerName} · {b.customerPhone}</p>
+                  <p className="text-xs text-gray-500">
+                    {b.type === "dress"
+                      ? `Rental · deliver ${b.deliverDate} · ${b.customerName} · ${b.customerPhone}`
+                      : `${b.timeSlot} · ${b.customerName} · ${b.customerPhone}`}
+                  </p>
                 </div>
                 <span className={clsx("h-2.5 w-2.5 rounded-full", STATUS_DOT[b.status] || "bg-gray-300")} title={b.status} />
               </li>

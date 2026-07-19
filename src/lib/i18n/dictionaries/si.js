@@ -2,7 +2,7 @@
 const si = {
   nav: {
     home: "මුල් පිටුව", products: "නිෂ්පාදන", services: "සේවාවන්", packages: "පැකේජ",
-    bookings: "ඔබගේ වෙන්කිරීම්", contact: "අප අමතන්න", gallery: "ගැලරිය", cart: "කරත්තය", login: "පිවිසෙන්න",
+    bookings: "ඔබගේ වෙන්කිරීම්", contact: "අප අමතන්න", gallery: "ගැලරිය", cart: "කරත්තය", login: "පිවිසෙන්න", dress: "ඇඳුම් සහ ආභරණ",
   },
   common: {
     search: "සොයන්න", addToCart: "කරත්තයට එක් කරන්න", checkout: "ගෙවීම", bookNow: "වෙන් කරන්න",
@@ -11,6 +11,7 @@ const si = {
     firstName: "මුල් නම", lastName: "අවසන් නම", phone: "දුරකථන අංකය", date: "දිනය",
     time: "වේලාව", gender: "ස්ත්‍රී/පුරුෂ", male: "පිරිමි", female: "ගැහැණු", from: "සිට", off: "වට්ටම්",
     close: "වසන්න", remove: "ඉවත් කරන්න", quantity: "ගණන", total: "එකතුව", minutes: "විනා.",
+    startingFrom: "ආරම්භක මිල", consultationNote: "මෙම සේවාව/පැකේජය ලබා ගැනීමට පෙර උපදේශනයක් අවශ්‍යයි \u2014 මිල වෙනස් විය හැක.",
   },
   home: {
     heroTitle: "ලස්සනට. දීප්තිමත්ව.",
@@ -49,6 +50,13 @@ const si = {
     bookByPhone: "සේවාවක් වෙන් කිරීමට අප අමතන්න හෝ WhatsApp කරන්න.",
   },
   gallery: { title: "ගැලරිය", subtitle: "අපගේ වැඩ බලන්න." },
+  dress: {
+    title: "ඇඳුම් සහ ආභරණ", subtitle: "ඔබගේ විශේෂ දිනය සඳහා ඇඳුම් සහ ආභරණ කුලියට ගන්න.",
+    searchPlaceholder: "ඇඳුම් සහ ආභරණ සොයන්න", available: "තිබේ", outOfStock: "සම්පූර්ණයෙන් වෙන්කර ඇත",
+    selectVariant: "වර්ගය තෝරන්න", noOfItems: "ගණන", bringDate: "රැගෙන යන දිනය", deliverDate: "භාරදෙන දිනය",
+    checkAvailability: "පවතීදැයි බලන්න", notEnough: "එම දිනවලට ප්‍රමාණවත් නැත",
+    delayCharge: "ප්‍රමාද ගාස්තුව / දිනකට",
+  },
   footer: { quickLinks: "සබැඳි", contact: "සම්බන්ධ වන්න", rights: "සියලු හිමිකම් ඇවිරිණි." },
 };
 export default si;

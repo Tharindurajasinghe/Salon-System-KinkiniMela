@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
 import Receipt from "@/components/billing/Receipt";
 import AddToCustomerModal from "@/components/billing/AddToCustomerModal";
+import DressBillingModal from "@/components/billing/DressBillingModal";
 import { api } from "@/lib/utils/apiClient";
 import { formatRs } from "@/lib/utils/currency";
 
@@ -17,14 +18,15 @@ const TABS = [
   { key: "product", label: "Products" },
   { key: "service", label: "Services" },
   { key: "package", label: "Packages" },
+  { key: "dressjewelry", label: "Dress & Jewelry" },
 ];
-const ENDPOINT = { product: "/api/products", service: "/api/services", package: "/api/packages" };
+const ENDPOINT = { product: "/api/products", service: "/api/services", package: "/api/packages", dressjewelry: "/api/dressjewelry" };
 
 // Normalise the different catalogue shapes into { refId, name, sellingPrice, image }.
 function normalise(kind, row) {
-  if (kind === "product") return { refId: row._id, name: row.name, sellingPrice: row.sellingPrice, image: row.image };
-  if (kind === "service") return { refId: row._id, name: row.name, sellingPrice: row.price, image: row.image };
-  return { refId: row._id, name: row.name, sellingPrice: row.price, image: row.images?.[0] || null };
+  if (kind === "product") return { refId: row._id, name: row.name, sellingPrice: row.sellingPrice, cost: row.buyingPrice || 0, image: row.image };
+  if (kind === "service") return { refId: row._id, name: row.name, sellingPrice: row.sellingPrice, cost: row.cost || 0, image: row.image };
+  return { refId: row._id, name: row.name, sellingPrice: row.sellingPrice, cost: row.cost || 0, image: row.images?.[0] || null };
 }
 
 export default function BillingClient() {
@@ -47,6 +49,7 @@ export default function BillingClient() {
   const [toast, setToast] = useState("");
   const [lastBill, setLastBill] = useState(null);
   const [addCustomerOpen, setAddCustomerOpen] = useState(false);
+  const [dressModalItem, setDressModalItem] = useState(null);
 
   // --- load salon (for receipt) + quick items ---
   useEffect(() => { api.get("/api/settings").then((d) => setSalon(d.settings)).catch(() => {}); }, []);
@@ -64,7 +67,7 @@ export default function BillingClient() {
     const q = search ? `&q=${encodeURIComponent(search)}` : "";
     api
       .get(`${ENDPOINT[tab]}?activeOnly=1${q}`)
-      .then((rows) => { if (active) setItems(rows.map((r) => normalise(tab, r))); })
+      .then((rows) => { if (active) setItems(tab === "dressjewelry" ? rows : rows.map((r) => normalise(tab, r))); })
       .catch(() => active && setItems([]))
       .finally(() => active && setLoadingItems(false));
     return () => { active = false; };
@@ -83,10 +86,20 @@ export default function BillingClient() {
     setCart((c) => {
       const found = c.find((l) => l.key === key);
       if (found) return c.map((l) => (l.key === key ? { ...l, qty: l.qty + 1 } : l));
-      return [...c, { key, kind, refId: item.refId, name: item.name, unitPrice: item.sellingPrice, qty: 1 }];
+      return [...c, { key, kind, refId: item.refId, name: item.name, unitPrice: item.sellingPrice, cost: item.cost || 0, qty: 1 }];
     });
   }
+  function addDressToCart({ dressItem, variantName, bringDate, deliverDate, unitPrice, cost, delayChargePerDay, qty }) {
+    const key = `dressjewelry:${dressItem._id}:${variantName}:${bringDate}:${deliverDate}`;
+    setCart((c) => {
+      const found = c.find((l) => l.key === key);
+      if (found) return c.map((l) => (l.key === key ? { ...l, qty: l.qty + qty } : l));
+      return [...c, { key, kind: "dressjewelry", refId: dressItem._id, name: `${dressItem.name} - ${variantName}`, unitPrice, cost, qty, variantName, bringDate, deliverDate, delayChargePerDay }];
+    });
+    setDressModalItem(null);
+  }
   const setQty = (key, qty) => setCart((c) => c.map((l) => (l.key === key ? { ...l, qty: Math.max(1, qty) } : l)));
+  const setPrice = (key, price) => setCart((c) => c.map((l) => (l.key === key ? { ...l, unitPrice: price } : l)));
   const removeLine = (key) => setCart((c) => c.filter((l) => l.key !== key));
 
   async function toggleQuick(kind, refId) {
@@ -101,7 +114,7 @@ export default function BillingClient() {
   }
 
   // --- totals (display only; server recomputes authoritatively) ---
-  const subTotal = cart.reduce((s, l) => s + l.unitPrice * l.qty, 0);
+  const subTotal = cart.reduce((s, l) => s + Number(l.unitPrice || 0) * l.qty, 0);
   const discountAmount = useMemo(() => {
     const v = Number(discountValue || 0);
     if (discountType === "percentage") return Math.min((subTotal * v) / 100, subTotal);
@@ -112,6 +125,11 @@ export default function BillingClient() {
 
   function flash(msg) { setToast(msg); setTimeout(() => setToast(""), 2500); }
 
+  // A line whose edited price is below cost is invalid.
+  const belowCostLine = cart.find((l) => Number(l.unitPrice || 0) < Number(l.cost || 0));
+  // Dress/jewelry lines force the whole bill onto a customer account.
+  const hasDress = cart.some((l) => l.kind === "dressjewelry");
+
   function resetCart() {
     setCart([]); setCustomerName(""); setCustomerPhone("");
     setDiscountValue(""); setDiscountType("amount"); setCashPaid("");
@@ -119,10 +137,11 @@ export default function BillingClient() {
 
   async function save(print) {
     if (cart.length === 0) return flash("Cart is empty.");
+    if (belowCostLine) return flash(`"${belowCostLine.name}" price is below its cost.`);
     setSaving(true);
     try {
       const bill = await api.post("/api/bills", {
-        items: cart.map((l) => ({ kind: l.kind, refId: l.refId, qty: l.qty })),
+        items: cart.map((l) => ({ kind: l.kind, refId: l.refId, qty: l.qty, price: Number(l.unitPrice || 0) })),
         customerName, customerPhone,
         discount: { type: discountType, value: Number(discountValue || 0) },
         cashPaid: Number(cashPaid || 0),
@@ -141,8 +160,10 @@ export default function BillingClient() {
   }
 
   const gridItems = tab === "quick"
-    ? (quick || []).map((q) => ({ kind: q.kind, item: { refId: q.refId, name: q.name, sellingPrice: q.sellingPrice, image: q.image }, entryId: q._id }))
-    : (items || []).map((it) => ({ kind: tab, item: it }));
+    ? (quick || []).map((q) => ({ kind: q.kind, item: { refId: q.refId, name: q.name, sellingPrice: q.sellingPrice, cost: q.cost || 0, image: q.image }, entryId: q._id }))
+    : tab === "dressjewelry"
+      ? (items || []).map((it) => ({ kind: "dressjewelry", item: { refId: it._id, name: it.name, image: it.image, sellingPrice: it.variants?.length ? Math.min(...it.variants.map((v) => v.sellingPrice)) : 0, _dress: it } }))
+      : (items || []).map((it) => ({ kind: tab, item: it }));
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
@@ -188,7 +209,7 @@ export default function BillingClient() {
               const inQuick = quickMap.has(`${kind}:${item.refId}`);
               return (
                 <div key={`${kind}:${item.refId}`} className="group relative overflow-hidden rounded-xl border border-gray-100 bg-white text-left shadow-sm transition-shadow hover:shadow-md">
-                  <button onClick={() => addToCart(kind, item)} className="block w-full text-left">
+                  <button onClick={() => kind === "dressjewelry" ? setDressModalItem(item._dress) : addToCart(kind, item)} className="block w-full text-left">
                     <div className="relative aspect-[4/3] bg-gray-50">
                       {item.image?.url ? (
                         <Image src={item.image.url} alt="" fill className="object-cover" sizes="200px" />
@@ -202,8 +223,8 @@ export default function BillingClient() {
                     </div>
                   </button>
 
-                  {/* Quick-sale toggle */}
-                  {tab === "quick" ? (
+                  {/* Quick-sale toggle (dress items can't be quick-sale) */}
+                  {tab === "dressjewelry" ? null : tab === "quick" ? (
                     <button
                       onClick={() => toggleQuick(kind, item.refId)}
                       className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-white/90 text-gray-500 shadow hover:text-red-500"
@@ -247,11 +268,27 @@ export default function BillingClient() {
             {cart.length === 0 ? (
               <p className="py-8 text-center text-sm text-gray-400">Tap items to add them here.</p>
             ) : (
-              cart.map((l) => (
+              cart.map((l) => {
+                const below = Number(l.unitPrice || 0) < Number(l.cost || 0);
+                return (
                 <div key={l.key} className="flex items-center gap-2 border-b border-gray-50 py-2 last:border-0">
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-1 text-sm font-medium text-gray-900">{l.name}</p>
-                    <p className="text-xs text-gray-500">{formatRs(l.unitPrice, 0)}</p>
+                    {l.kind === "dressjewelry" && (
+                      <p className="text-[10px] text-gray-400">{l.bringDate} → {l.deliverDate}</p>
+                    )}
+                    <div className="mt-0.5 flex items-center gap-1">
+                      <span className="text-xs text-gray-400">Rs.</span>
+                      <input
+                        type="number"
+                        min={l.cost || 0}
+                        value={l.unitPrice}
+                        onChange={(e) => setPrice(l.key, e.target.value)}
+                        title={`Cost: ${formatRs(l.cost || 0, 0)}`}
+                        className={"w-20 rounded border px-1.5 py-0.5 text-xs focus:outline-none " + (below ? "border-red-400 bg-red-50 text-red-600" : "border-gray-200 text-gray-600")}
+                      />
+                      {below && <span className="text-[10px] text-red-500">below cost</span>}
+                    </div>
                   </div>
                   <div className="flex items-center gap-1">
                     <button onClick={() => setQty(l.key, l.qty - 1)} className="grid h-6 w-6 place-items-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50"><Minus className="h-3 w-3" /></button>
@@ -262,10 +299,11 @@ export default function BillingClient() {
                     />
                     <button onClick={() => setQty(l.key, l.qty + 1)} className="grid h-6 w-6 place-items-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50"><Plus className="h-3 w-3" /></button>
                   </div>
-                  <span className="w-20 text-right text-sm font-medium text-gray-900">{formatRs(l.unitPrice * l.qty, 0)}</span>
+                  <span className="w-20 text-right text-sm font-medium text-gray-900">{formatRs(Number(l.unitPrice || 0) * l.qty, 0)}</span>
                   <button onClick={() => removeLine(l.key)} className="text-gray-300 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -311,14 +349,17 @@ export default function BillingClient() {
 
           {/* Actions */}
           <div className="space-y-2 border-t border-gray-100 p-4">
+            {hasDress && (
+              <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">Dress/jewelry items must be billed to a customer. Use "Add to customer".</p>
+            )}
             <Button variant="gold" className="w-full" onClick={() => { if (cart.length === 0) return flash("Cart is empty."); setAddCustomerOpen(true); }} disabled={saving}>
               <UserPlus className="h-4 w-4" /> Add to customer
             </Button>
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => save(false)} disabled={saving}>
+              <Button variant="outline" className="flex-1" onClick={() => save(false)} disabled={saving || hasDress}>
                 <Check className="h-4 w-4" /> Save
               </Button>
-              <Button className="flex-1" onClick={() => save(true)} disabled={saving}>
+              <Button className="flex-1" onClick={() => save(true)} disabled={saving || hasDress}>
                 <Printer className="h-4 w-4" /> {saving ? "Saving..." : "Print bill"}
               </Button>
             </div>
@@ -335,6 +376,14 @@ export default function BillingClient() {
 
       {/* Hidden printable receipt */}
       <Receipt bill={lastBill} salon={salon} />
+
+      {/* Pick variant / dates / fit-price for a dress or jewelry item */}
+      <DressBillingModal
+        open={!!dressModalItem}
+        item={dressModalItem}
+        onClose={() => setDressModalItem(null)}
+        onAdd={addDressToCart}
+      />
 
       {/* Add current cart to a customer's account (credit) */}
       <AddToCustomerModal

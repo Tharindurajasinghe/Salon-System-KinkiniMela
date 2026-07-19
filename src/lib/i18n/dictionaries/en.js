@@ -2,7 +2,7 @@
 const en = {
   nav: {
     home: "Home", products: "Products", services: "Services", packages: "Packages",
-    bookings: "Your Bookings", contact: "Contact", gallery: "Gallery", cart: "Cart", login: "Login",
+    bookings: "Your Bookings", contact: "Contact", gallery: "Gallery", cart: "Cart", login: "Login", dress: "Dress & Jewelry",
   },
   common: {
     search: "Search", addToCart: "Add to cart", checkout: "Checkout", bookNow: "Book now",
@@ -11,6 +11,7 @@ const en = {
     firstName: "First name", lastName: "Last name", phone: "Phone number", date: "Date",
     time: "Time", gender: "Gender", male: "Male", female: "Female", from: "from", off: "OFF",
     close: "Close", remove: "Remove", quantity: "Qty", total: "Total", minutes: "min",
+    startingFrom: "Starting from", consultationNote: "Consultation needed before this service/package \u2014 the price may change.",
   },
   home: {
     heroTitle: "Look good. Feel radiant.",
@@ -49,6 +50,13 @@ const en = {
     bookByPhone: "To book a service, call or WhatsApp us.",
   },
   gallery: { title: "Gallery", subtitle: "A look at our work." },
+  dress: {
+    title: "Dress & Jewelry", subtitle: "Rent dresses and jewelry for your special day.",
+    searchPlaceholder: "Search dress & jewelry", available: "available", outOfStock: "Fully booked",
+    selectVariant: "Select variant", noOfItems: "No. of items", bringDate: "Bring date", deliverDate: "Deliver date",
+    checkAvailability: "Check availability", notEnough: "Not enough available for those dates",
+    delayCharge: "Delay charge / day",
+  },
   footer: { quickLinks: "Quick links", contact: "Contact", rights: "All rights reserved." },
 };
 export default en;

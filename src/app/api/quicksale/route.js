@@ -24,7 +24,7 @@ async function getHandler() {
   for (const e of entries) {
     const info = await resolveItem(e.kind, e.refId);
     if (info && info.active) {
-      items.push({ _id: e._id, kind: e.kind, refId: e.refId, name: info.name, sellingPrice: info.sellingPrice, image: info.image });
+      items.push({ _id: e._id, kind: e.kind, refId: e.refId, name: info.name, sellingPrice: info.sellingPrice, cost: info.cost, image: info.image });
     }
   }
   return ok(items);

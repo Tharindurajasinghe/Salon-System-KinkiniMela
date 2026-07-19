@@ -11,7 +11,7 @@ async function handler(req) {
   if (sp.get("categoryId")) query.category = sp.get("categoryId");
 
   const services = await Service.find(query)
-    .select("-profit")
+    .select("-cost")
     .populate("category", "name")
     .sort({ createdAt: -1 })
     .lean();

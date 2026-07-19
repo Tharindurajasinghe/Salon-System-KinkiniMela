@@ -2,6 +2,7 @@ import connectDB from "@/lib/db";
 import Booking from "@/lib/models/Booking";
 import Order from "@/lib/models/Order";
 import Bill from "@/lib/models/Bill";
+import DressOrder from "@/lib/models/DressOrder";
 import { requireAuth, canAccess } from "@/lib/auth";
 import { smsService } from "@/lib/services/SmsService";
 import { ok, fail, withErrorHandler } from "@/lib/utils/apiResponse";
@@ -53,6 +54,18 @@ async function getHandler(req) {
     );
   }
 
+  if (["all", "dressjewelry"].includes(type)) {
+    const dress = await DressOrder.find().sort({ createdAt: -1 }).lean();
+    dress.forEach((o) =>
+      rows.push({
+        rowType: "dressorder", kind: "dressjewelry", _id: o._id, code: o.orderId,
+        name: `${o.itemName} - ${o.variantName} x${o.qty}`, date: o.bringDate, status: o.status,
+        customerName: `${o.customer?.firstName || ""} ${o.customer?.lastName || ""}`.trim(),
+        customerPhone: o.customer?.phone || "", createdAt: o.createdAt, raw: o,
+      })
+    );
+  }
+
   if (["all", "bill"].includes(type)) {
     const bills = await Bill.find().sort({ createdAt: -1 }).lean();
     bills.forEach((bl) =>
@@ -80,11 +93,11 @@ async function putHandler(req) {
   await connectDB();
 
   const { rowType, id, status, rejectReason } = await req.json();
-  if (!["booking", "order"].includes(rowType)) return fail("Bills cannot change status", 400);
+  if (!["booking", "order", "dressorder"].includes(rowType)) return fail("Bills cannot change status", 400);
   if (!["pending", "confirm", "rejected"].includes(status)) return fail("Invalid status", 400);
   if (status === "rejected" && !rejectReason?.trim()) return fail("A reject reason is required", 400);
 
-  const Model = rowType === "booking" ? Booking : Order;
+  const Model = rowType === "booking" ? Booking : rowType === "dressorder" ? DressOrder : Order;
   const doc = await Model.findById(id);
   if (!doc) return fail("Not found", 404);
 
@@ -94,7 +107,7 @@ async function putHandler(req) {
 
   const phone = doc.customer?.phone;
   const humanId = rowType === "booking" ? doc.bookingId : doc.orderId;
-  const smsType = rowType === "booking" ? "booking" : "order";
+  const smsType = rowType === "order" ? "order" : "booking";
   if (phone) {
     if (status === "confirm") smsService.statusConfirmed(phone, { type: smsType, id: humanId }).catch(() => {});
     if (status === "rejected") smsService.statusRejected(phone, { type: smsType, id: humanId, reason: rejectReason.trim() }).catch(() => {});
@@ -114,7 +127,7 @@ async function deleteHandler(req) {
   const id = sp.get("id");
   if (!id) return fail("id is required", 400);
 
-  const Model = rowType === "booking" ? Booking : rowType === "order" ? Order : rowType === "bill" ? Bill : null;
+  const Model = rowType === "booking" ? Booking : rowType === "order" ? Order : rowType === "dressorder" ? DressOrder : rowType === "bill" ? Bill : null;
   if (!Model) return fail("Invalid rowType", 400);
 
   await Model.findByIdAndDelete(id);

@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Plus, Eye, Pencil, Trash2, UserRound, Receipt as ReceiptIcon, Wallet } from "lucide-react";
+import { Search, Plus, Eye, Pencil, Trash2, UserRound, Receipt as ReceiptIcon, Wallet, Printer, FileText } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import Spinner from "@/components/ui/Spinner";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Receipt from "@/components/billing/Receipt";
+import CustomerStatement from "@/components/billing/CustomerStatement";
 import { api } from "@/lib/utils/apiClient";
 import { formatRs } from "@/lib/utils/currency";
 import { formatSL } from "@/lib/utils/timezone";
@@ -74,6 +75,13 @@ export default function CustomersPage() {
   }
   function printInvoice(bill) {
     setPrintBill({ ...bill, isCredit: true, customerName: detail.customer.name, customerPhone: detail.customer.phone });
+    setTimeout(() => window.print(), 120);
+  }
+  function printStatement(kind) {
+    const cls = kind === "a4" ? "print-invoice-a4" : "print-statement-80";
+    document.body.classList.add(cls);
+    const cleanup = () => { document.body.classList.remove(cls); window.removeEventListener("afterprint", cleanup); };
+    window.addEventListener("afterprint", cleanup);
     setTimeout(() => window.print(), 120);
   }
 
@@ -175,6 +183,13 @@ export default function CustomersPage() {
               <div className="rounded-xl bg-brand-50 px-4 py-3 text-right">
                 <p className="text-xs text-gray-500">Balance due</p>
                 <p className={"font-display text-2xl " + (detail.balanceDue > 0 ? "text-red-500" : "text-green-600")}>{formatRs(detail.balanceDue)}</p>
+                {detail.delayTotal > 0 && (
+                  <p className="text-[11px] text-gray-500">Bills {formatRs(detail.billBalance)} + delay {formatRs(detail.delayTotal)}</p>
+                )}
+                <div className="mt-2 flex justify-end gap-1">
+                  <button onClick={() => printStatement("80")} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-white"><Printer className="h-3 w-3" /> 80mm</button>
+                  <button onClick={() => printStatement("a4")} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-white"><FileText className="h-3 w-3" /> A4</button>
+                </div>
               </div>
             </div>
 
@@ -215,6 +230,24 @@ export default function CustomersPage() {
               )}
             </div>
 
+            {/* Dress & jewelry rentals */}
+            {detail.reservations?.length > 0 && (
+              <div>
+                <p className="mb-2 text-sm font-medium text-gray-700">Dress & jewelry rentals</p>
+                <div className="space-y-2">
+                  {detail.reservations.map((r, i) => (
+                    <div key={i} className="rounded-xl border border-gray-100 p-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-800">{r.name} ({r.variantName}) × {r.qty}</span>
+                        {r.delayCharge > 0 && <span className="font-medium text-red-500">+{formatRs(r.delayCharge)}</span>}
+                      </div>
+                      <p className="text-xs text-gray-500">Bring {r.bringDate} → Deliver {r.deliverDate}{r.overdueDays > 0 ? ` · ${r.overdueDays} day(s) late` : ""}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Payment history */}
             <div>
               <p className="mb-2 text-sm font-medium text-gray-700">Payment history</p>
@@ -250,6 +283,7 @@ export default function CustomersPage() {
       {toast && <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm text-white shadow-lg">{toast}</div>}
 
       <Receipt bill={printBill} salon={salon} />
+      <CustomerStatement data={detail} salon={salon} />
     </div>
   );
 }

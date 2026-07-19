@@ -10,7 +10,7 @@ const BillSchema = new mongoose.Schema(
     billId: { type: String, unique: true }, // BILL000001
     items: [
       {
-        kind: { type: String, enum: ["product", "service", "package"] },
+        kind: { type: String, enum: ["product", "service", "package", "dressjewelry"] },
         ref: { type: mongoose.Schema.Types.ObjectId },
         name: String,
         sellingPrice: Number, // unit selling price
@@ -19,6 +19,11 @@ const BillSchema = new mongoose.Schema(
         // Post-discount breakdown (from discount.js) stored for the summary.
         itemDiscount: Number,
         profitAfter: Number,
+        // Dress/jewelry rental extras (present only for kind === "dressjewelry").
+        variantName: String,
+        bringDate: String, // yyyy-MM-dd
+        deliverDate: String, // yyyy-MM-dd
+        delayChargePerDay: Number,
       },
     ],
     customerName: { type: String, default: "" },

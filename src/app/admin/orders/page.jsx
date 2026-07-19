@@ -17,6 +17,7 @@ const FILTERS = [
   { key: "service", label: "Services" },
   { key: "package", label: "Packages" },
   { key: "product", label: "Products" },
+  { key: "dressjewelry", label: "Dress & Jewelry" },
   { key: "bill", label: "Bills" },
 ];
 const REJECT_PRESETS = [
@@ -31,7 +32,7 @@ const STATUS_STYLES = {
   paid: "bg-blue-100 text-blue-700",
   credit: "bg-orange-100 text-orange-700",
 };
-const TYPE_LABEL = { service: "Service", package: "Package", product: "Product", bill: "Bill" };
+const TYPE_LABEL = { service: "Service", package: "Package", product: "Product", dressjewelry: "Dress/Jewelry", bill: "Bill" };
 
 export default function OrdersPage() {
   const [filter, setFilter] = useState("all");
@@ -201,6 +202,16 @@ function OrderDetails({ row }) {
         <div>
           <p className="text-xs uppercase tracking-wide text-gray-400">Booking</p>
           <p className="text-gray-700">{r.itemName} — {r.date} at {r.timeSlot}</p>
+          {r.rejectReason && <p className="mt-1 text-red-500">Reject reason: {r.rejectReason}</p>}
+        </div>
+      )}
+
+      {row.rowType === "dressorder" && (
+        <div>
+          <p className="text-xs uppercase tracking-wide text-gray-400">Rental</p>
+          <p className="text-gray-700">{r.itemName} — {r.variantName} × {r.qty}</p>
+          <p className="mt-1 text-gray-500">Bring {r.bringDate} → Deliver {r.deliverDate}</p>
+          <p className="text-gray-500">Delay charge/day: {formatRs(r.delayChargePerDay || 0, 0)}</p>
           {r.rejectReason && <p className="mt-1 text-red-500">Reject reason: {r.rejectReason}</p>}
         </div>
       )}
