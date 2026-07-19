@@ -1,4 +1,5 @@
 import connectDB from "@/lib/db";
+import Holiday from "@/lib/models/Holiday";
 import { variantAvailability } from "@/lib/dressAvailability";
 import { todaySLKey, dateKey } from "@/lib/utils/timezone";
 import { ok, fail, withErrorHandler } from "@/lib/utils/apiResponse";
@@ -6,7 +7,7 @@ import { ok, fail, withErrorHandler } from "@/lib/utils/apiResponse";
 /**
  * GET /api/public/dress-availability?itemId=&variant=&bring=&deliver=
  * Returns how many units are free for that window (past/today bring blocked,
- * and deliver must be on/after bring).
+ * off days blocked as the bring date, and deliver must be on/after bring).
  */
 async function handler(req) {
   await connectDB();
@@ -19,6 +20,11 @@ async function handler(req) {
   if (!itemId || !variant || !bring || !deliver) return fail("Missing parameters", 400);
   if (dateKey(bring) <= todaySLKey()) return ok({ available: 0, stock: 0, reason: "past_or_today" });
   if (dateKey(deliver) < dateKey(bring)) return ok({ available: 0, stock: 0, reason: "bad_range" });
+
+  // The salon's off days cannot be used as the bring (pickup) date.
+  if (await Holiday.findOne({ date: dateKey(bring) }).lean()) {
+    return ok({ available: 0, stock: 0, reason: "holiday" });
+  }
 
   const res = await variantAvailability(itemId, variant, dateKey(bring), dateKey(deliver));
   return ok(res);

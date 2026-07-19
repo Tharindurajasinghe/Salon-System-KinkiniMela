@@ -6,14 +6,14 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import {
   LayoutDashboard, Receipt, ClipboardList, BarChart3, Tags,
-  Scissors, CalendarDays, Users, UserRound, Settings, Images, X,
+  Scissors, CalendarDays, Users, UserRound, Settings, Images, FileText, X,
 } from "lucide-react";
 import { allowedNav } from "@/lib/adminNav";
 
 // Map the icon names stored in adminNav.js to actual lucide components.
 const ICONS = {
   LayoutDashboard, Receipt, ClipboardList, BarChart3, Tags,
-  Scissors, CalendarDays, Users, UserRound, Settings, Images,
+  Scissors, CalendarDays, Users, UserRound, Settings, Images, FileText,
 };
 
 /**

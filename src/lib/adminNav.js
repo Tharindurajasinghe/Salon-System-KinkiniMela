@@ -16,6 +16,7 @@ export const NAV_ITEMS = [
   { key: "staff", label: "Staff", href: "/admin/staff", icon: "Users" },
   { key: "customers", label: "Customers", href: "/admin/customers", icon: "UserRound" },
   { key: "gallery", label: "Gallery", href: "/admin/gallery", icon: "Images" },
+  { key: "invoices", label: "Invoices", href: "/admin/invoices", icon: "FileText" },
   { key: "settings", label: "Settings", href: "/admin/settings", icon: "Settings" },
 ];
 

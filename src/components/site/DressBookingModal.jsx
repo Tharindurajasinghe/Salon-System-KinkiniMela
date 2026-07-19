@@ -102,6 +102,7 @@ export default function DressBookingModal({ open, item, onClose }) {
           {/* Availability feedback */}
           <div className="rounded-lg bg-gray-50 px-3 py-2 text-sm">
             {checking ? <span className="text-gray-400">Checking…</span>
+              : avail?.reason === "holiday" ? <span className="text-red-500">The salon is closed on that day — pick another bring date.</span>
               : avail ? (
                 avail.available >= qty
                   ? <span className="text-green-600">{avail.available} {t("dress.available")} for these dates ✓</span>

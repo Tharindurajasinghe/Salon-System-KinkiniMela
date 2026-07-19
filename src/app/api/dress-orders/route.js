@@ -1,6 +1,7 @@
 import connectDB from "@/lib/db";
 import DressJewelry from "@/lib/models/DressJewelry";
 import DressOrder from "@/lib/models/DressOrder";
+import Holiday from "@/lib/models/Holiday";
 import { nextId } from "@/lib/utils/idGenerator";
 import { smsService } from "@/lib/services/SmsService";
 import { getSettings } from "@/lib/settings";
@@ -25,6 +26,7 @@ async function postHandler(req) {
   const bring = dateKey(b.bringDate), deliver = dateKey(b.deliverDate);
   if (bring <= todaySLKey()) return fail("Bring date must be a future date", 400);
   if (deliver < bring) return fail("Deliver date cannot be before the bring date", 400);
+  if (await Holiday.findOne({ date: bring }).lean()) return fail("The salon is closed on that day", 400);
 
   const item = await DressJewelry.findOne({ _id: b.itemId, active: true }).lean();
   if (!item) return fail("This item is no longer available", 400);
