@@ -77,25 +77,34 @@ export default function CartPage() {
   return (
     <div>
       <PageHeader title={t("cart.title")} />
-      <div className="mx-auto grid max-w-6xl gap-8 px-6 py-8 lg:grid-cols-[1fr_360px]">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_360px]">
         {/* Items */}
         <div className="divide-y divide-gray-100 rounded-2xl border border-gray-100 bg-white">
           {items.map((it) => (
-            <div key={it.refId} className="flex items-center gap-4 p-4">
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-50">
-                {it.image?.url ? <Image src={it.image.url} alt="" fill className="object-cover" sizes="64px" /> : <span className="grid h-full place-items-center text-gray-300"><ImageIcon className="h-5 w-5" /></span>}
+            <div key={it.refId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
+              {/* image + name (grows on desktop) */}
+              <div className="flex min-w-0 items-center gap-3 sm:flex-1 sm:gap-4">
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-50">
+                  {it.image?.url ? <Image src={it.image.url} alt="" fill className="object-cover" sizes="64px" /> : <span className="grid h-full place-items-center text-gray-300"><ImageIcon className="h-5 w-5" /></span>}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 font-medium text-gray-900 sm:line-clamp-1">{it.name}</p>
+                  <p className="text-sm text-brand-600">{formatRs(it.sellingPrice, 0)}</p>
+                </div>
+                {/* remove — mobile only, top-right of the row */}
+                <button onClick={() => remove(it.refId)} className="shrink-0 p-1 text-gray-300 hover:text-red-500 sm:hidden" aria-label="Remove"><Trash2 className="h-4 w-4" /></button>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="line-clamp-1 font-medium text-gray-900">{it.name}</p>
-                <p className="text-sm text-brand-600">{formatRs(it.sellingPrice, 0)}</p>
+
+              {/* qty + line total (+ desktop remove) */}
+              <div className="flex items-center justify-between gap-3 sm:justify-end sm:gap-4">
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setQty(it.refId, it.qty - 1)} className="grid h-8 w-8 place-items-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50"><Minus className="h-3.5 w-3.5" /></button>
+                  <span className="w-8 text-center text-sm">{it.qty}</span>
+                  <button onClick={() => setQty(it.refId, it.qty + 1)} className="grid h-8 w-8 place-items-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50"><Plus className="h-3.5 w-3.5" /></button>
+                </div>
+                <span className="min-w-[5rem] text-right font-medium text-gray-900 sm:w-24">{formatRs(it.sellingPrice * it.qty, 0)}</span>
+                <button onClick={() => remove(it.refId)} className="hidden shrink-0 p-1 text-gray-300 hover:text-red-500 sm:block" aria-label="Remove"><Trash2 className="h-4 w-4" /></button>
               </div>
-              <div className="flex items-center gap-1">
-                <button onClick={() => setQty(it.refId, it.qty - 1)} className="grid h-7 w-7 place-items-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50"><Minus className="h-3.5 w-3.5" /></button>
-                <span className="w-8 text-center text-sm">{it.qty}</span>
-                <button onClick={() => setQty(it.refId, it.qty + 1)} className="grid h-7 w-7 place-items-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50"><Plus className="h-3.5 w-3.5" /></button>
-              </div>
-              <span className="w-24 text-right font-medium text-gray-900">{formatRs(it.sellingPrice * it.qty, 0)}</span>
-              <button onClick={() => remove(it.refId)} className="text-gray-300 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
             </div>
           ))}
         </div>
@@ -108,7 +117,7 @@ export default function CartPage() {
             </div>
 
             <p className="mt-4 text-sm font-medium text-gray-700">{t("cart.yourDetails")}</p>
-            <div className="mt-2 grid grid-cols-2 gap-2">
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder={t("common.firstName")} className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               <input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} placeholder={t("common.lastName")} className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
             </div>
