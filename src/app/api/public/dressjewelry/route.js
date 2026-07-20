@@ -1,6 +1,7 @@
 import connectDB from "@/lib/db";
 import DressJewelry from "@/lib/models/DressJewelry";
 import { ok, withErrorHandler } from "@/lib/utils/apiResponse";
+import Category from "@/lib/models/Category";
 
 /** GET /api/public/dressjewelry?q=&categoryId= — active items, no cost/fit prices. */
 async function handler(req) {

@@ -4,6 +4,7 @@ import { requireAuth, canAccess } from "@/lib/auth";
 import { nextId } from "@/lib/utils/idGenerator";
 import { cloudinaryService } from "@/lib/services/CloudinaryService";
 import { ok, created, fail, withErrorHandler } from "@/lib/utils/apiResponse";
+import Category from "@/lib/models/Category";
 
 function guard() {
   const { session, error } = requireAuth();

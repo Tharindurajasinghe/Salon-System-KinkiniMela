@@ -1,6 +1,7 @@
 import connectDB from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { ok, withErrorHandler } from "@/lib/utils/apiResponse";
+import Category from "@/lib/models/Category";
 
 /** GET /api/public/products?q=&categoryId= — public catalogue (no cost/profit). */
 async function handler(req) {

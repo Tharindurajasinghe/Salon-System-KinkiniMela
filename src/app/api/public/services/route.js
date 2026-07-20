@@ -1,6 +1,7 @@
 import connectDB from "@/lib/db";
 import Service from "@/lib/models/Service";
 import { ok, withErrorHandler } from "@/lib/utils/apiResponse";
+import Category from "@/lib/models/Category";
 
 /** GET /api/public/services?q=&categoryId= — public (no profit). */
 async function handler(req) {
