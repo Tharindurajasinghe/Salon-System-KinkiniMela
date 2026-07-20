@@ -22,5 +22,5 @@ async function handler() {
     contactMessage: s.contactMessage || { en: "", si: "" },
   });
 }
-
+export const dynamic = "force-dynamic";
 export const GET = withErrorHandler(handler);
