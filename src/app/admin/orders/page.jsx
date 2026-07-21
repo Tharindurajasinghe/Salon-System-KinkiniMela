@@ -36,6 +36,8 @@ const TYPE_LABEL = { service: "Service", package: "Package", product: "Product",
 
 export default function OrdersPage() {
   const [filter, setFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [rows, setRows] = useState(null);
   const [salon, setSalon] = useState(null);
   const [details, setDetails] = useState(null);
@@ -83,11 +85,40 @@ export default function OrdersPage() {
     setTimeout(() => window.print(), 120);
   }
 
-  const list = useMemo(() => rows || [], [rows]);
+  const list = useMemo(() => {
+    let l = rows || [];
+    if (statusFilter) l = l.filter((r) => r.status === statusFilter);
+    if (dateFilter) l = l.filter((r) => (r.date || formatSL(r.createdAt, "yyyy-MM-dd")) === dateFilter);
+    return l;
+  }, [rows, statusFilter, dateFilter]);
 
   return (
     <div className="space-y-5">
       <Tabs tabs={FILTERS} active={filter} onChange={setFilter} />
+
+      {/* Date + status filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="date"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none"
+        >
+          <option value="">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirm">Confirmed</option>
+          <option value="rejected">Rejected</option>
+          <option value="paid">Paid</option>
+        </select>
+        {(dateFilter || statusFilter) && (
+          <button onClick={() => { setDateFilter(""); setStatusFilter(""); }} className="text-sm text-gray-500 hover:text-gray-700">Clear</button>
+        )}
+      </div>
 
       {rows === null ? (
         <div className="grid place-items-center py-16 text-brand-400"><Spinner className="h-7 w-7" /></div>
@@ -241,7 +272,14 @@ function OrderDetails({ row }) {
             <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>{formatRs(r.subTotal)}</span></div>
             {r.discount?.amount > 0 && <div className="flex justify-between text-gray-500"><span>Discount</span><span>- {formatRs(r.discount.amount)}</span></div>}
             <div className="flex justify-between font-semibold"><span>Total</span><span>{formatRs(r.grandTotal)}</span></div>
-            <div className="flex justify-between text-gray-500"><span>Cash / Change</span><span>{formatRs(r.cashPaid)} / {formatRs(r.change)}</span></div>
+            {r.isCredit ? (
+              <>
+                <div className="flex justify-between text-gray-500"><span>Paid</span><span>{formatRs(r.paidAmount || 0)}</span></div>
+                <div className="flex justify-between font-medium text-red-500"><span>Balance due</span><span>{formatRs((r.grandTotal || 0) - (r.paidAmount || 0))}</span></div>
+              </>
+            ) : (
+              <div className="flex justify-between text-gray-500"><span>Cash / Change</span><span>{formatRs(r.cashPaid)} / {formatRs(r.change)}</span></div>
+            )}
           </div>
         </div>
       )}

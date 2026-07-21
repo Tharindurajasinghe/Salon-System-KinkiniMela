@@ -2,6 +2,7 @@ import connectDB from "@/lib/db";
 import Booking from "@/lib/models/Booking";
 import Order from "@/lib/models/Order";
 import Bill from "@/lib/models/Bill";
+import Customer from "@/lib/models/Customer"; // registers schema for .populate()
 import DressOrder from "@/lib/models/DressOrder";
 import { requireAuth, canAccess } from "@/lib/auth";
 import { smsService } from "@/lib/services/SmsService";
@@ -67,12 +68,16 @@ async function getHandler(req) {
   }
 
   if (["all", "bill"].includes(type)) {
-    const bills = await Bill.find().sort({ createdAt: -1 }).lean();
+    const bills = await Bill.find().populate("customer", "name phone").sort({ createdAt: -1 }).lean();
     bills.forEach((bl) =>
       rows.push({
         rowType: "bill", kind: "bill", _id: bl._id, code: bl.billId,
-        name: "POS Sale", date: null, status: "paid",
-        customerName: bl.customerName || "", customerPhone: bl.customerPhone || "",
+        name: "POS Sale", date: null,
+        // Pending while a balance is outstanding; paid once fully settled.
+        status: (bl.grandTotal - (bl.paidAmount || 0)) > 0.01 ? "pending" : "paid",
+        // Credit bills store a linked customer; walk-in bills store a plain name.
+        customerName: bl.customer?.name || bl.customerName || "",
+        customerPhone: bl.customer?.phone || bl.customerPhone || "",
         createdAt: bl.createdAt, raw: bl,
       })
     );

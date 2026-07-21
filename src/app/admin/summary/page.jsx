@@ -39,7 +39,8 @@ export default function SummaryPage() {
     setTimeout(() => window.print(), 120);
   }
 
-  const maxIncome = data?.series?.length ? Math.max(...data.series.map((s) => s.income), 1) : 1;
+  const series = data?.series || [];
+  const maxIncome = series.length ? Math.max(...series.map((s) => s.income), 1) : 1;
 
   return (
     <div className="space-y-5">
@@ -80,17 +81,34 @@ export default function SummaryPage() {
           </div>
 
           {/* Monthly income-by-day chart */}
-          {scope === "monthly" && data.series.length > 0 && (
+          {scope === "monthly" && (
             <Card className="p-5">
               <p className="mb-4 text-sm font-medium text-gray-700">Income by day</p>
-              <div className="flex h-40 items-end gap-1">
-                {data.series.map((s) => (
-                  <div key={s.date} className="group flex flex-1 flex-col items-center justify-end" title={`${s.date}: ${formatRs(s.income)}`}>
-                    <div className="w-full rounded-t bg-brand-400 transition-colors group-hover:bg-brand-500" style={{ height: `${(s.income / maxIncome) * 100}%` }} />
-                    <span className="mt-1 text-[9px] text-gray-400">{s.date.slice(-2)}</span>
+              {series.length === 0 ? (
+                <p className="py-8 text-center text-sm text-gray-400">No sales recorded this month.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <div className="min-w-[520px]">
+                    {/* Bars — direct children of the fixed-height row so % heights work */}
+                    <div className="flex h-40 items-end gap-1">
+                      {series.map((s) => (
+                        <div
+                          key={s.date}
+                          title={`${s.date}: ${formatRs(s.income)}`}
+                          className="group flex-1 rounded-t bg-brand-400 transition-colors hover:bg-brand-500"
+                          style={{ height: `${s.income > 0 ? Math.max(3, (s.income / maxIncome) * 100) : 0}%` }}
+                        />
+                      ))}
+                    </div>
+                    {/* Day labels row (aligned column-for-column with the bars) */}
+                    <div className="mt-1 flex gap-1">
+                      {series.map((s) => (
+                        <span key={s.date} className="flex-1 text-center text-[9px] text-gray-400">{s.date.slice(-2)}</span>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </Card>
           )}
 
