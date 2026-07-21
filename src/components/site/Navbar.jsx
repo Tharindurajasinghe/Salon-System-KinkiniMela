@@ -21,6 +21,15 @@ const LINKS = [
   { href: "/contact", key: "nav.contact" },
 ];
 
+// Scale the salon name down as it gets longer so it always fits nicely.
+function nameSizeClass(name = "") {
+  const len = (name || "").trim().length;
+  if (len <= 12) return "text-xl";
+  if (len <= 18) return "text-lg";
+  if (len <= 26) return "text-base";
+  return "text-sm";
+}
+
 export default function Navbar() {
   const { t, lang, setLang } = useLanguage();
   const salon = useSalon();
@@ -39,6 +48,7 @@ export default function Navbar() {
   useEffect(() => setOpen(false), [pathname]);
 
   const isActive = (href) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const salonName = salon?.salonName || "Salon";
 
   return (
     <header
@@ -49,15 +59,24 @@ export default function Navbar() {
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
         {/* Brand */}
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5">
           {salon?.logo?.url ? (
-            <Image src={salon.logo.url} alt="" width={36} height={36} className="h-9 w-9 rounded-full object-cover ring-1 ring-brand-200" />
+            <Image src={salon.logo.url} alt="" width={36} height={36} className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-brand-200" />
           ) : (
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-100 font-display text-brand-600">
-              {salon?.salonName?.[0] || "S"}
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-100 font-display text-brand-600">
+              {salonName[0] || "S"}
             </span>
           )}
-          <span className="font-display text-xl text-gray-900">{salon?.salonName || "Salon"}</span>
+          <span
+            title={salonName}
+            className={clsx(
+              "truncate font-display leading-tight text-gray-900",
+              "max-w-[52vw] lg:max-w-[13rem] xl:max-w-[18rem]",
+              nameSizeClass(salonName)
+            )}
+          >
+            {salonName}
+          </span>
         </Link>
 
         {/* Desktop links */}
@@ -77,7 +96,7 @@ export default function Navbar() {
         </div>
 
         {/* Right controls */}
-        <div className="ml-auto flex items-center gap-2 lg:ml-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-2">
           <LangToggle lang={lang} setLang={setLang} />
 
           <Link href="/cart" className="relative rounded-lg p-2 text-gray-700 hover:bg-brand-50 hover:text-brand-600">
