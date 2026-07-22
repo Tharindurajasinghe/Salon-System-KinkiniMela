@@ -83,7 +83,7 @@ export default function CustomerStatement({ data, salon }) {
           </div>
         ))}
 
-        {reservations.some((r) => r.delayCharge > 0) && (
+        {delayTotal > 0 && reservations.some((r) => r.delayCharge > 0) && (
           <div className="mt-5">
             <p className="mb-1 text-sm font-semibold text-red-600">Delay charges</p>
             <table className="w-full text-sm">
