@@ -13,10 +13,14 @@ export default function Receipt({ bill, salon }) {
 
   return (
     <div id="receipt-print" className="hidden print:block">
-      <div className="mx-auto w-[72mm] font-mono text-[11px] leading-tight text-black">
+      <div className="mx-auto w-[72mm] font-mono text-[13px] leading-tight text-black">
         {/* Header */}
         <div className="text-center">
-          <p className="text-[15px] font-bold">{salon?.salonName || "Salon"}</p>
+          {salon?.logo?.url && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={salon.logo.url} alt="" className="mx-auto mb-1 h-16 w-16 rounded-full object-cover" />
+          )}
+          <p className="text-[18px] font-bold">{salon?.salonName || "Salon"}</p>
           {salon?.tagline && <p>{salon.tagline}</p>}
           {salon?.addressLine1 && <p>{salon.addressLine1}</p>}
           {salon?.addressLine2 && <p>{salon.addressLine2}</p>}
@@ -61,7 +65,7 @@ export default function Receipt({ bill, salon }) {
             value={`- ${formatRs(bill.discount.amount)}`}
           />
         )}
-        <div className="mt-1 flex justify-between text-[13px] font-bold">
+        <div className="mt-1 flex justify-between text-[16px] font-bold">
           <span>TOTAL</span><span>{formatRs(bill.grandTotal)}</span>
         </div>
         {bill.isCredit ? (
@@ -78,7 +82,7 @@ export default function Receipt({ bill, salon }) {
 
         <Divider />
         <p className="text-center">Thank you! Please come again.</p>
-        <p className="mt-1 text-center text-[9px]">Powered by TAR Solutions</p>
+        <p className="mt-1 text-center text-[10px]">Powered by TAR Solutions</p>
       </div>
     </div>
   );

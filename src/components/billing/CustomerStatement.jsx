@@ -14,17 +14,24 @@ import { formatSL } from "@/lib/utils/timezone";
 export default function CustomerStatement({ data, salon }) {
   if (!data) return null;
   const { customer, creditBills = [], reservations = [], history = [], billBalance = 0, delayTotal = 0, balanceDue = 0 } = data;
-  const name = salon?.name || "Salon";
+  const name = salon?.salonName || salon?.name || "Salon";
 
   return (
     <>
       {/* ---------- A4 ---------- */}
       <div id="invoice-a4" className="hidden bg-white p-8 text-gray-900 print:block" style={{ fontFamily: "Arial, sans-serif" }}>
         <div className="flex items-start justify-between border-b border-gray-300 pb-4">
-          <div>
-            <h1 className="text-2xl font-bold">{name}</h1>
-            {salon?.address && <p className="text-sm text-gray-500">{salon.address}</p>}
-            {salon?.phone && <p className="text-sm text-gray-500">{salon.phone}</p>}
+          <div className="flex items-center gap-3">
+            {salon?.logo?.url && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={salon.logo.url} alt="" className="h-16 w-16 rounded-full object-cover" />
+            )}
+            <div>
+              <h1 className="text-2xl font-bold">{name}</h1>
+              {salon?.addressLine1 && <p className="text-sm text-gray-500">{salon.addressLine1}</p>}
+              {salon?.addressLine2 && <p className="text-sm text-gray-500">{salon.addressLine2}</p>}
+              {salon?.phone && <p className="text-sm text-gray-500">Tel: {salon.phone}</p>}
+            </div>
           </div>
           <div className="text-right">
             <h2 className="text-xl font-semibold">INVOICE</h2>
@@ -98,9 +105,13 @@ export default function CustomerStatement({ data, salon }) {
       </div>
 
       {/* ---------- 80mm ---------- */}
-      <div id="statement-80" className="hidden bg-white p-2 text-black print:block" style={{ width: "80mm", fontFamily: "monospace", fontSize: "11px" }}>
+      <div id="statement-80" className="hidden bg-white p-2 text-black print:block" style={{ width: "80mm", fontFamily: "monospace", fontSize: "13px" }}>
         <div className="text-center">
-          <p className="text-sm font-bold">{name}</p>
+          {salon?.logo?.url && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={salon.logo.url} alt="" className="mx-auto mb-1 h-14 w-14 rounded-full object-cover" />
+          )}
+          <p className="text-lg font-bold">{name}</p>
           <p>Customer statement</p>
           <p>{customer.name} · {customer.phone}</p>
           <p>{formatSL(new Date(), "yyyy-MM-dd")}</p>

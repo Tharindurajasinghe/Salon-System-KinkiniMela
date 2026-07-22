@@ -17,6 +17,17 @@ html {
   background-size: 500px 100%;
 }
 
+/* Remove number-input spinner arrows everywhere */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* ---- Printing ----
    Receipt prints at 80mm; the summary prints full width. Body class scoping
    keeps the two rules from fighting each other. */
