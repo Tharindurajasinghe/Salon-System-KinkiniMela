@@ -3,6 +3,7 @@ import { Poppins, Playfair_Display } from "next/font/google";
 import Providers from "@/components/providers/Providers";
 import { DEFAULT_LANG } from "@/lib/i18n";
 import "./globals.css";
+import NumberInputGuard from "@/components/util/NumberInputGuard";
 
 // Load brand fonts once at the root and expose them as CSS variables.
 const poppins = Poppins({
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang={lang} className={`${poppins.variable} ${playfair.variable}`}>
+      <NumberInputGuard />
       <body className="font-sans text-gray-800 antialiased">
         <Providers initialLang={lang}>{children}</Providers>
       </body>

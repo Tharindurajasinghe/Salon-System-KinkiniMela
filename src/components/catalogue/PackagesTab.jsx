@@ -15,7 +15,7 @@ import { api } from "@/lib/utils/apiClient";
 import { formatRs } from "@/lib/utils/currency";
 
 const EMPTY = {
-  name: "", cost: 0, sellingPrice: "", consultationNeeded: false, timeSpendMin: 60, maxBookings: 1, description: "",
+  name: "", cost: "", sellingPrice: "", consultationNeeded: false, timeSpendMin: 60, maxBookings: 1, description: "",
   images: [], timeSlots: [], discount: { percentage: 0, note: "" }, active: true,
 };
 
@@ -108,7 +108,7 @@ export default function PackagesTab() {
             {formError && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{formError}</p>}
             <Input label="Name" value={modal.data.name} onChange={(e) => upd({ name: e.target.value })} />
             <div className="grid gap-4 sm:grid-cols-3">
-              <Input label="Cost (Rs.)" type="number" min="0" value={modal.data.cost} onChange={(e) => upd({ cost: Number(e.target.value) })} />
+              <Input label="Cost (Rs.)" type="number" min="0" value={modal.data.cost} onChange={(e) => upd({ cost: e.target.value })} />
               <Input label="Selling price (Rs.)" type="number" min="0" value={modal.data.sellingPrice} onChange={(e) => upd({ sellingPrice: e.target.value })} />
               <Input label="Time (minutes)" type="number" min="0" value={modal.data.timeSpendMin} onChange={(e) => upd({ timeSpendMin: Number(e.target.value) })} />
               <Input label="Max bookings per slot" type="number" min="1" value={modal.data.maxBookings} onChange={(e) => upd({ maxBookings: Math.max(1, Number(e.target.value) || 1) })} />

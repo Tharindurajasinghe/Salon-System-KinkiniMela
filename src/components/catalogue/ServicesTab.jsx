@@ -16,7 +16,7 @@ import { api } from "@/lib/utils/apiClient";
 import { formatRs } from "@/lib/utils/currency";
 
 const EMPTY = {
-  name: "", category: "", cost: 0, sellingPrice: "", consultationNeeded: false, timeSpendMin: 30, maxBookings: 1,
+  name: "", category: "", cost: "", sellingPrice: "", consultationNeeded: false, timeSpendMin: 30, maxBookings: 1,
   description: "", image: null, timeSlots: [], discount: { percentage: 0, note: "" }, active: true,
 };
 
@@ -120,7 +120,7 @@ export default function ServicesTab() {
               </Select>
               <Input label="Time spent (minutes)" type="number" min="0" value={modal.data.timeSpendMin} onChange={(e) => upd({ timeSpendMin: Number(e.target.value) })} />
               <Input label="Max bookings per slot" type="number" min="1" value={modal.data.maxBookings} onChange={(e) => upd({ maxBookings: Math.max(1, Number(e.target.value) || 1) })} />
-              <Input label="Cost (Rs.)" type="number" min="0" value={modal.data.cost} onChange={(e) => upd({ cost: Number(e.target.value) })} />
+              <Input label="Cost (Rs.)" type="number" min="0" value={modal.data.cost} onChange={(e) => upd({ cost: e.target.value })} />
               <Input label="Selling price (Rs.)" type="number" min="0" value={modal.data.sellingPrice} onChange={(e) => upd({ sellingPrice: e.target.value })} />
             </div>
             <label className="flex items-center gap-3 rounded-xl border border-gray-100 p-3">

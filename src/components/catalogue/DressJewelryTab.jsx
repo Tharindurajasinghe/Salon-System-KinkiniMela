@@ -15,10 +15,10 @@ import { api } from "@/lib/utils/apiClient";
 import { formatRs } from "@/lib/utils/currency";
 
 const EMPTY = {
-  name: "", category: "", images: [], description: "", delayChargePerDay: 0,
+  name: "", category: "", images: [], description: "", delayChargePerDay: "",
   isDress: false, variants: [], active: true,
 };
-const NEW_VARIANT = { name: "", cost: 0, sellingPrice: "", stock: 0, fit1: 0, fit2: 0, fit3: 0 };
+const NEW_VARIANT = { name: "", cost: "", sellingPrice: "", stock: 0, fit1: 0, fit2: 0, fit3: 0 };
 
 export default function DressJewelryTab() {
   const [rows, setRows] = useState(null);
@@ -125,7 +125,7 @@ export default function DressJewelryTab() {
                 <option value="">— None —</option>
                 {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
               </Select>
-              <Input label="Delay charge per day (Rs.)" type="number" min="0" value={modal.data.delayChargePerDay} onChange={(e) => upd({ delayChargePerDay: Number(e.target.value) })} />
+              <Input label="Delay charge per day (Rs.)" type="number" min="0" value={modal.data.delayChargePerDay} onChange={(e) => upd({ delayChargePerDay: e.target.value })} />
             </div>
             <Input as="textarea" label="Description" value={modal.data.description} onChange={(e) => upd({ description: e.target.value })} />
             <div>
