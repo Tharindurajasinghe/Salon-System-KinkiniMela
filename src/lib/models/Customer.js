@@ -13,6 +13,17 @@ const CustomerSchema = new mongoose.Schema(
     addressLine2: { type: String, default: "" },
     phone: { type: String, required: true, unique: true, trim: true },
     idCard: { type: String, default: "", trim: true }, // national ID card number
+
+    // Payments recorded against dress/jewelry late-return (delay) charges.
+    // Delay charges are computed on the fly from bills; these entries record
+    // how much of that delay has been settled, so it stops showing as owed.
+    delayPayments: [
+      {
+        amount: { type: Number, required: true },
+        at: { type: Date, default: Date.now },
+        note: { type: String, default: "" },
+      },
+    ],
   },
   { timestamps: true }
 );

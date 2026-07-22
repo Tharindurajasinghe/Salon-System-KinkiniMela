@@ -59,12 +59,16 @@ async function getHandler(req) {
       items: b.items,
     }));
 
-    // Flatten every installment across the customer's bills into one history.
+    // Flatten every installment across the customer's bills into one history,
+    // plus any delay-charge payments recorded on the customer.
     const history = [];
     bills.forEach((b) =>
       (b.payments || []).forEach((p) =>
         history.push({ billId: b.billId, amount: p.amount, at: p.at, note: p.note })
       )
+    );
+    (customer.delayPayments || []).forEach((p) =>
+      history.push({ billId: "—", amount: p.amount, at: p.at, note: p.note || "Delay charge payment" })
     );
     history.sort((a, b) => new Date(b.at) - new Date(a.at));
 
@@ -72,13 +76,13 @@ async function getHandler(req) {
     // and auto-compute the delay charge (days overdue x per-day rate x qty).
     const today = todaySLKey();
     const reservations = [];
-    let delayTotal = 0;
+    let delayGross = 0;
     bills.forEach((b) => {
       (b.items || []).forEach((it) => {
         if (it.kind === "dressjewelry" && it.deliverDate) {
           const overdueDays = Math.max(0, daysBetween(it.deliverDate, today)); // today - deliverDate
           const delayCharge = round2(overdueDays * (it.delayChargePerDay || 0) * (it.qty || 1));
-          delayTotal += delayCharge;
+          delayGross += delayCharge;
           reservations.push({
             billId: b.billId, name: it.name, variantName: it.variantName, qty: it.qty,
             bringDate: it.bringDate, deliverDate: it.deliverDate,
@@ -87,7 +91,11 @@ async function getHandler(req) {
         }
       });
     });
-    delayTotal = round2(delayTotal);
+    delayGross = round2(delayGross);
+
+    // Subtract delay already paid → what's still owed in delay.
+    const delayPaid = round2((customer.delayPayments || []).reduce((s, p) => s + (p.amount || 0), 0));
+    const delayTotal = Math.max(0, round2(delayGross - delayPaid));
 
     const billBalance = round2(creditBills.reduce((s, b) => s + b.balance, 0));
     const balanceDue = round2(billBalance + delayTotal);
