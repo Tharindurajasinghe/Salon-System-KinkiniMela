@@ -15,6 +15,8 @@ export default function CustomerStatement({ data, salon }) {
   if (!data) return null;
   const { customer, creditBills = [], reservations = [], history = [], billBalance = 0, delayTotal = 0, balanceDue = 0 } = data;
   const name = salon?.salonName || salon?.name || "Salon";
+  const unsettled = creditBills.filter((b) => (b.balance || 0) > 0.009);
+  const billsToPrint = unsettled.length > 0 ? unsettled : creditBills.slice(0, 2);
 
   return (
     <>
@@ -48,7 +50,7 @@ export default function CustomerStatement({ data, salon }) {
           )}
         </div>
 
-        {creditBills.map((b) => (
+        {billsToPrint.map((b) => (
           <div key={b._id} className="mt-5">
             <p className="mb-1 text-sm font-semibold">Bill {b.billId} · {formatSL(b.createdAt, "yyyy-MM-dd")}</p>
             <table className="w-full text-sm">
@@ -117,7 +119,7 @@ export default function CustomerStatement({ data, salon }) {
           <p>{formatSL(new Date(), "yyyy-MM-dd")}</p>
         </div>
         <div className="my-1 border-t border-dashed border-black" />
-        {creditBills.map((b) => (
+        {billsToPrint.map((b) => (
           <div key={b._id} className="mb-1">
             <p className="font-bold">{b.billId}</p>
             {b.items.map((it, i) => (
