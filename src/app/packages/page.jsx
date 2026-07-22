@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Search, Clock } from "lucide-react";
+import { Search, Clock, X } from "lucide-react";
 import PageHeader from "@/components/site/PageHeader";
 import PackageCard from "@/components/site/PackageCard";
 import BookingModal from "@/components/site/BookingModal";
@@ -19,6 +19,7 @@ export default function PackagesPage() {
   const [rows, setRows] = useState(null);
   const [details, setDetails] = useState(null);
   const [booking, setBooking] = useState(null);
+  const [lightbox, setLightbox] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -71,9 +72,9 @@ export default function PackagesPage() {
             {details.images?.length > 0 && (
               <div className="mb-4 grid grid-cols-3 gap-2">
                 {details.images.map((img, i) => (
-                  <div key={i} className="relative aspect-square overflow-hidden rounded-xl bg-gray-50">
-                    <Image src={img.url} alt="" fill className="object-cover" sizes="200px" />
-                  </div>
+                  <button key={i} onClick={() => setLightbox(img.url)} className="relative aspect-square cursor-zoom-in overflow-hidden rounded-xl bg-gray-50">
+                    <Image src={img.url} alt="" fill className="object-cover transition-transform hover:scale-105" sizes="200px" />
+                  </button>
                 ))}
               </div>
             )}
@@ -106,6 +107,15 @@ export default function PackagesPage() {
           </div>
         )}
       </Modal>
+
+      {/* Full-screen image */}
+      {lightbox && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4" onClick={() => setLightbox(null)}>
+          <button onClick={() => setLightbox(null)} className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" aria-label="Close"><X className="h-5 w-5" /></button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightbox} alt="" className="max-h-[85vh] max-w-full rounded-lg object-contain" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
 
       <BookingModal open={!!booking} item={booking} itemType="package" onClose={() => setBooking(null)} />
     </div>

@@ -26,7 +26,7 @@ async function getHandler(req) {
   return ok(packages);
 }
 
-/** POST /api/packages — create (auto id PKG######, max 3 images). */
+/** POST /api/packages — create (auto id PKG######, max 5 images). */
 async function postHandler(req) {
   const g = guard();
   if (g.error) return fail(g.error, g.status);
@@ -37,7 +37,7 @@ async function postHandler(req) {
   if (b.sellingPrice == null) return fail("Selling price is required", 400);
   if (Number(b.sellingPrice) < Number(b.cost || 0)) return fail("Selling price cannot be below cost", 400);
 
-  const images = Array.isArray(b.images) ? b.images.slice(0, 3) : [];
+  const images = Array.isArray(b.images) ? b.images.slice(0, 5) : [];
   const code = await nextId("PKG");
   const pkg = await Package.create({
     code,
@@ -63,7 +63,7 @@ async function putHandler(req) {
 
   const { id, ...fields } = await req.json();
   if (!id) return fail("id is required", 400);
-  if (Array.isArray(fields.images)) fields.images = fields.images.slice(0, 3);
+  if (Array.isArray(fields.images)) fields.images = fields.images.slice(0, 5);
 
   const pkg = await Package.findByIdAndUpdate(id, { $set: fields }, { new: true }).lean();
   if (!pkg) return fail("Package not found", 404);

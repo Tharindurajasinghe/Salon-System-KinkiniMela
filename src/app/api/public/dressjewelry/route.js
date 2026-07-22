@@ -19,7 +19,7 @@ async function handler(req) {
     code: it.code,
     name: it.name,
     category: it.category,
-    image: it.image,
+    images: it.images?.length ? it.images : (it.image ? [it.image] : []),
     description: it.description,
     delayChargePerDay: it.delayChargePerDay,
     isDress: it.isDress,

@@ -120,7 +120,7 @@ export default function PackagesTab() {
             <Input as="textarea" label="Description" value={modal.data.description} onChange={(e) => upd({ description: e.target.value })} />
             <div>
               <p className="mb-1.5 text-sm font-medium text-gray-700">Images (up to 3)</p>
-              <ImageUploader value={modal.data.images} onChange={(imgs) => upd({ images: imgs })} multiple max={3} folder="salon/packages" />
+              <ImageUploader value={modal.data.images} onChange={(imgs) => upd({ images: imgs })} multiple max={5} folder="salon/packages" />
             </div>
             <div>
               <p className="mb-1.5 text-sm font-medium text-gray-700">Available time slots</p>

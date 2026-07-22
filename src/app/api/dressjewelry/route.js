@@ -61,7 +61,7 @@ async function postHandler(req) {
     code,
     name: b.name.trim(),
     category: b.category || null,
-    image: b.image || null,
+    images: Array.isArray(b.images) ? b.images.slice(0, 5) : [],
     description: b.description || "",
     delayChargePerDay: Number(b.delayChargePerDay || 0),
     isDress,
@@ -83,11 +83,14 @@ async function putHandler(req) {
   if (fields.variants) fields.variants = cleanVariants(fields.variants, Boolean(fields.isDress));
   if (fields.delayChargePerDay != null) fields.delayChargePerDay = Number(fields.delayChargePerDay);
 
-  if (fields.image) {
-    const prev = await DressJewelry.findById(id).select("image").lean();
-    if (prev?.image?.publicId && prev.image.publicId !== fields.image.publicId) {
-      cloudinaryService.destroy(prev.image.publicId).catch(() => {});
-    }
+  if (Array.isArray(fields.images)) {
+    fields.images = fields.images.slice(0, 5);
+    // Destroy any Cloudinary images dropped in this edit.
+    const prev = await DressJewelry.findById(id).select("images").lean();
+    const keep = new Set(fields.images.map((i) => i.publicId));
+    (prev?.images || []).forEach((img) => {
+      if (img.publicId && !keep.has(img.publicId)) cloudinaryService.destroy(img.publicId).catch(() => {});
+    });
   }
 
   const item = await DressJewelry.findByIdAndUpdate(id, { $set: fields }, { new: true }).populate("category", "name").lean();
@@ -102,8 +105,8 @@ async function deleteHandler(req) {
   await connectDB();
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return fail("id is required", 400);
-  const item = await DressJewelry.findById(id).select("image").lean();
-  if (item?.image?.publicId) cloudinaryService.destroy(item.image.publicId).catch(() => {});
+  const item = await DressJewelry.findById(id).select("images").lean();
+  (item?.images || []).forEach((img) => { if (img.publicId) cloudinaryService.destroy(img.publicId).catch(() => {}); });
   await DressJewelry.findByIdAndDelete(id);
   return ok(null, "Item removed");
 }

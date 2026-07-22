@@ -25,7 +25,7 @@ const DressJewelrySchema = new mongoose.Schema(
     code: { type: String, unique: true }, // e.g. DRJ000001
     name: { type: String, required: true, trim: true },
     category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
-    image: ImageSchema,
+    images: { type: [ImageSchema], default: [] }, // up to 5 (enforced in route)
     description: { type: String, default: "" },
     delayChargePerDay: { type: Number, default: 0 },
     isDress: { type: Boolean, default: false },

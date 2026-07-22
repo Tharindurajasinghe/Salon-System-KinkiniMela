@@ -162,7 +162,7 @@ export default function BillingClient() {
   const gridItems = tab === "quick"
     ? (quick || []).map((q) => ({ kind: q.kind, item: { refId: q.refId, name: q.name, sellingPrice: q.sellingPrice, cost: q.cost || 0, image: q.image }, entryId: q._id }))
     : tab === "dressjewelry"
-      ? (items || []).map((it) => ({ kind: "dressjewelry", item: { refId: it._id, name: it.name, image: it.image, sellingPrice: it.variants?.length ? Math.min(...it.variants.map((v) => v.sellingPrice)) : 0, _dress: it } }))
+      ? (items || []).map((it) => ({ kind: "dressjewelry", item: { refId: it._id, name: it.name, image: it.images?.[0] || null, sellingPrice: it.variants?.length ? Math.min(...it.variants.map((v) => v.sellingPrice)) : 0, _dress: it } }))
       : (items || []).map((it) => ({ kind: tab, item: it }));
 
   return (

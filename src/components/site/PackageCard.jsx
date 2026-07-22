@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
-import { ImageIcon, Eye, CalendarPlus } from "lucide-react";
+import { Eye, CalendarPlus } from "lucide-react";
 import DiscountBadge from "./DiscountBadge";
+import CardImages from "./CardImages";
 import { useLanguage } from "@/context/LanguageProvider";
 import { formatRs } from "@/lib/utils/currency";
 
@@ -11,17 +11,12 @@ export default function PackageCard({ pkg, onView, onBook }) {
   const { t } = useLanguage();
   const pct = pkg.discount?.percentage || 0;
   const finalPrice = pct ? pkg.sellingPrice * (1 - pct / 100) : pkg.sellingPrice;
-  const cover = pkg.images?.[0];
 
   return (
     <div className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
       <div className="relative aspect-[4/3] bg-gray-50">
         <DiscountBadge discount={pkg.discount} />
-        {cover?.url ? (
-          <Image src={cover.url} alt={pkg.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="360px" />
-        ) : (
-          <span className="absolute inset-0 grid place-items-center text-gray-200"><ImageIcon className="h-9 w-9" /></span>
-        )}
+        <CardImages images={pkg.images} alt={pkg.name} />
       </div>
       <div className="p-4">
         <p className="line-clamp-1 font-display text-lg text-gray-900">{pkg.name}</p>

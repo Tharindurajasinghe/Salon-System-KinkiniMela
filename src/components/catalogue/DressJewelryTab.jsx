@@ -15,7 +15,7 @@ import { api } from "@/lib/utils/apiClient";
 import { formatRs } from "@/lib/utils/currency";
 
 const EMPTY = {
-  name: "", category: "", image: null, description: "", delayChargePerDay: 0,
+  name: "", category: "", images: [], description: "", delayChargePerDay: 0,
   isDress: false, variants: [], active: true,
 };
 const NEW_VARIANT = { name: "", cost: 0, sellingPrice: "", stock: 0, fit1: 0, fit2: 0, fit3: 0 };
@@ -40,7 +40,7 @@ export default function DressJewelryTab() {
   function openEdit(it) {
     setFormError("");
     setModal({ mode: "edit", data: {
-      id: it._id, name: it.name, category: it.category?._id || "", image: it.image || null,
+      id: it._id, name: it.name, category: it.category?._id || "", images: it.images || [],
       description: it.description || "", delayChargePerDay: it.delayChargePerDay || 0,
       isDress: it.isDress, variants: (it.variants || []).map((v) => ({ ...v })), active: it.active,
     } });
@@ -93,7 +93,7 @@ export default function DressJewelryTab() {
             <tbody className="divide-y divide-gray-100">
               {rows.map((it) => (
                 <tr key={it._id} className="hover:bg-gray-50/60">
-                  <Td><Thumb src={it.image?.url} /></Td>
+                  <Td><Thumb src={it.images?.[0]?.url} /></Td>
                   <Td className="font-mono text-xs text-gray-500">{it.code}</Td>
                   <Td className="font-medium text-gray-900">{it.name}</Td>
                   <Td className="text-gray-500">{it.category?.name || "—"}</Td>
@@ -129,8 +129,8 @@ export default function DressJewelryTab() {
             </div>
             <Input as="textarea" label="Description" value={modal.data.description} onChange={(e) => upd({ description: e.target.value })} />
             <div>
-              <p className="mb-1.5 text-sm font-medium text-gray-700">Image</p>
-              <ImageUploader value={modal.data.image} onChange={(img) => upd({ image: img })} folder="salon/dressjewelry" />
+              <p className="mb-1.5 text-sm font-medium text-gray-700">Images (up to 5)</p>
+              <ImageUploader value={modal.data.images} onChange={(imgs) => upd({ images: imgs })} multiple max={5} folder="salon/dressjewelry" />
             </div>
 
             <label className="flex items-center gap-3 rounded-xl border border-gray-100 p-3">
