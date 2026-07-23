@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Package, CalendarDays, Gem } from "lucide-react";
+import { Search, Package, CalendarDays, Gem, Info} from "lucide-react";
 import PageHeader from "@/components/site/PageHeader";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
@@ -74,6 +74,7 @@ export default function BookingsPage() {
                 sub={`${t("bookings.booking")} · ${b.date} ${b.timeSlot}`}
                 status={b.status}
                 statusLabel={statusLabel(b.status)}
+                rejectReason={b.rejectReason}
               />
             ))}
             {result.orders.map((o) => (
@@ -85,6 +86,7 @@ export default function BookingsPage() {
                 sub={`${t("bookings.order")} · ${t("bookings.pickup")} ${o.pickupDate} · ${formatRs(o.total, 0)}`}
                 status={o.status}
                 statusLabel={statusLabel(o.status)}
+                rejectReason={o.rejectReason}
               />
             ))}
             {(result.dressOrders || []).map((d) => (
@@ -96,6 +98,7 @@ export default function BookingsPage() {
                 sub={`${t("dress.bringDate")} ${d.bringDate} · ${t("dress.deliverDate")} ${d.deliverDate}`}
                 status={d.status}
                 statusLabel={statusLabel(d.status)}
+                rejectReason={d.rejectReason}
               />
             ))}
           </div>
@@ -105,20 +108,29 @@ export default function BookingsPage() {
   );
 }
 
-function Row({ Icon, id, title, sub, status, statusLabel }) {
+function Row({ Icon, id, title, sub, status, statusLabel, rejectReason }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><Icon className="h-5 w-5" /></span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-gray-500">{id}</span>
+    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+      <div className="flex items-center gap-4">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><Icon className="h-5 w-5" /></span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs text-gray-500">{id}</span>
+          </div>
+          <p className="line-clamp-1 font-medium text-gray-900">{title}</p>
+          <p className="text-xs text-gray-400">{sub}</p>
         </div>
-        <p className="line-clamp-1 font-medium text-gray-900">{title}</p>
-        <p className="text-xs text-gray-400">{sub}</p>
+        <span className={"shrink-0 rounded-full px-3 py-1 text-xs font-medium " + (STATUS_STYLES[status] || "bg-gray-100 text-gray-600")}>
+          {statusLabel}
+        </span>
       </div>
-      <span className={"shrink-0 rounded-full px-3 py-1 text-xs font-medium " + (STATUS_STYLES[status] || "bg-gray-100 text-gray-600")}>
-        {statusLabel}
-      </span>
+
+      {status === "rejected" && rejectReason && (
+        <div className="mt-3 flex gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="whitespace-pre-line">{rejectReason}</p>
+        </div>
+      )}
     </div>
   );
 }
