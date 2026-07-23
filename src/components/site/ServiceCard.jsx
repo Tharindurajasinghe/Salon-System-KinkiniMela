@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { Clock, ImageIcon, CalendarPlus } from "lucide-react";
+import { Clock, ImageIcon, CalendarPlus, Eye } from "lucide-react";
 import DiscountBadge from "./DiscountBadge";
 import { useLanguage } from "@/context/LanguageProvider";
 import { formatRs } from "@/lib/utils/currency";
 
 /** Service card. "Book now" is handled by the parent (opens BookNotice for now). */
-export default function ServiceCard({ service, onBook }) {
+export default function ServiceCard({ service, onView, onBook }) {
   const { t } = useLanguage();
   const pct = service.discount?.percentage || 0;
   const finalPrice = pct ? service.sellingPrice * (1 - pct / 100) : service.sellingPrice;
@@ -28,7 +28,7 @@ export default function ServiceCard({ service, onBook }) {
         {service.description && <p className="mt-1 line-clamp-2 text-sm text-gray-500">{service.description}</p>}
         <div className="mt-2 flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-wide text-gray-400">{t("common.startingFrom")}</span>
+            <span className="text-[10px] uppercase tracking-wide text-green-600">{t("common.startingFrom")}</span>
             <div className="flex items-baseline gap-2">
               <span className="text-brand-600">{formatRs(finalPrice, 0)}</span>
               {pct > 0 && <span className="text-xs text-gray-400 line-through">{formatRs(service.sellingPrice, 0)}</span>}
@@ -39,9 +39,14 @@ export default function ServiceCard({ service, onBook }) {
         {service.consultationNeeded && (
           <p className="mt-2 text-xs font-medium text-red-500">{t("common.consultationNote")}</p>
         )}
-        <button onClick={() => onBook(service)} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-brand-500 py-2 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50">
-          <CalendarPlus className="h-4 w-4" /> {t("common.bookNow")}
-        </button>
+        <div className="mt-3 flex gap-2">
+          <button onClick={() => onView(service)} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+            <Eye className="h-4 w-4" /> {t("common.viewDetails")}
+          </button>
+          <button onClick={() => onBook(service)} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-brand-500 py-2 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50">
+            <CalendarPlus className="h-4 w-4" /> {t("common.bookNow")}
+          </button>
+        </div>
       </div>
     </div>
   );

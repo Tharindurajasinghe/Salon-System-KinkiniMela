@@ -20,10 +20,10 @@ export default function PackageCard({ pkg, onView, onBook }) {
       </div>
       <div className="p-4">
         <p className="line-clamp-1 font-display text-lg text-gray-900">{pkg.name}</p>
-        <span className="text-[10px] uppercase tracking-wide text-gray-400">{t("common.startingFrom")}</span>
+        <span className="text-[10px] uppercase tracking-wide text-green-600">{t("common.startingFrom")}</span>
         <div className="flex items-baseline gap-2">
           <span className="text-brand-600">{formatRs(finalPrice, 0)}</span>
-          {pct > 0 && <span className="text-xs text-gray-400 line-through">{formatRs(pkg.sellingPrice, 0)}</span>}
+          {pct > 0 && <span className="text-xs text-grey-400 line-through">{formatRs(pkg.sellingPrice, 0)}</span>}
         </div>
         {pkg.consultationNeeded && (
           <p className="mt-2 text-xs font-medium text-red-500">{t("common.consultationNote")}</p>

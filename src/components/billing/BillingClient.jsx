@@ -332,7 +332,7 @@ export default function BillingClient() {
               <div className="flex justify-between text-gray-500"><span>Discount applied</span><span>- {formatRs(discountAmount)}</span></div>
             )}
 
-            <div className="flex justify-between border-t border-gray-100 pt-2 text-base font-semibold text-gray-900">
+            <div className="flex justify-between border-t border-gray-100 pt-2 text-base font-semibold text-blue-700">
               <span>Total</span><span>{formatRs(grandTotal)}</span>
             </div>
 
