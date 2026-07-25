@@ -19,6 +19,7 @@ const BookingSchema = new mongoose.Schema(
       firstName: String,
       lastName: String,
       phone: { type: String, required: true },
+      whatsapp: { type: String, default: "" },
       gender: { type: String, enum: ["male", "female", ""], default: "" },
     },
 

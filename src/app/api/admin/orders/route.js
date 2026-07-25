@@ -37,7 +37,7 @@ async function getHandler(req) {
         rowType: "booking", kind: b.itemType, _id: b._id, code: b.bookingId,
         name: b.itemName, date: b.date, timeSlot: b.timeSlot, status: b.status,
         customerName: `${b.customer?.firstName || ""} ${b.customer?.lastName || ""}`.trim(),
-        customerPhone: b.customer?.phone || "", createdAt: b.createdAt, raw: b,
+        customerPhone: b.customer?.phone || "", customerWhatsapp: b.customer?.whatsapp || b.customer?.phone || "", createdAt: b.createdAt, raw: b,
       })
     );
   }
@@ -50,7 +50,7 @@ async function getHandler(req) {
         name: o.items.map((i) => `${i.name} x${i.qty}`).join(", "),
         date: o.pickupDate, status: o.status,
         customerName: `${o.customer?.firstName || ""} ${o.customer?.lastName || ""}`.trim(),
-        customerPhone: o.customer?.phone || "", createdAt: o.createdAt, raw: o,
+        customerPhone: o.customer?.phone || "", customerWhatsapp: o.customer?.whatsapp || o.customer?.phone || "", createdAt: o.createdAt, raw: o,
       })
     );
   }
@@ -62,7 +62,7 @@ async function getHandler(req) {
         rowType: "dressorder", kind: "dressjewelry", _id: o._id, code: o.orderId,
         name: `${o.itemName} - ${o.variantName} x${o.qty}`, date: o.bringDate, status: o.status,
         customerName: `${o.customer?.firstName || ""} ${o.customer?.lastName || ""}`.trim(),
-        customerPhone: o.customer?.phone || "", createdAt: o.createdAt, raw: o,
+        customerPhone: o.customer?.phone || "", customerWhatsapp: o.customer?.whatsapp || o.customer?.phone || "", createdAt: o.createdAt, raw: o,
       })
     );
   }

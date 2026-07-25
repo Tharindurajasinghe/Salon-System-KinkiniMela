@@ -40,7 +40,7 @@ async function postHandler(req) {
   const order = await Order.create({
     orderId,
     items,
-    customer: { firstName: c.firstName.trim(), lastName: (c.lastName || "").trim(), phone: c.phone.trim() },
+    customer: { firstName: c.firstName.trim(), lastName: (c.lastName || "").trim(), phone: c.phone.trim(), whatsapp: (c.whatsapp || c.phone).trim() },
     pickupDate: body.pickupDate,
     total,
     status: "pending",

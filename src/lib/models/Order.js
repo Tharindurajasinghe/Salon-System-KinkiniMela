@@ -19,6 +19,7 @@ const OrderSchema = new mongoose.Schema(
       firstName: String,
       lastName: String,
       phone: { type: String, required: true },
+      whatsapp: { type: String, default: "" },
     },
     pickupDate: { type: String, required: true }, // "yyyy-MM-dd"
     status: {

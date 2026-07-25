@@ -28,6 +28,8 @@ export default function DressBookingModal({ open, item, onClose }) {
   const [qty, setQty] = useState(1);
   const [firstName, setFirstName] = useState("");
   const [phone, setPhone] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [waSame, setWaSame] = useState(true);
   const [avail, setAvail] = useState(null); // {available, stock} | null
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -64,7 +66,7 @@ export default function DressBookingModal({ open, item, onClose }) {
     try {
       const res = await api.post("/api/dress-orders", {
         itemId: item._id, variantName, qty: Number(qty),
-        customer: { firstName: firstName.trim(), phone: phone.trim() },
+        customer: { firstName: firstName.trim(), phone: phone.trim(), whatsapp: (waSame ? phone : whatsapp).trim() },
         bringDate, deliverDate,
       });
       setDone(res.orderId);
@@ -112,7 +114,12 @@ export default function DressBookingModal({ open, item, onClose }) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Input label="Your name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-            <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <Input label="Phone" value={phone} onChange={(e) => { setPhone(e.target.value); if (waSame) setWhatsapp(e.target.value); }} />
+            <label className="flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" checked={waSame} onChange={(e) => { setWaSame(e.target.checked); setWhatsapp(e.target.checked ? phone : ""); }} className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400" />
+              WhatsApp same as phone number
+            </label>
+            {!waSame && <Input label="WhatsApp number" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />}
           </div>
 
           {variant && (

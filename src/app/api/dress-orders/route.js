@@ -46,7 +46,7 @@ async function postHandler(req) {
     qty,
     unitPrice: variant.sellingPrice,
     delayChargePerDay: item.delayChargePerDay || 0,
-    customer: { firstName: c.firstName.trim(), lastName: (c.lastName || "").trim(), phone: c.phone.trim() },
+    customer: { firstName: c.firstName.trim(), lastName: (c.lastName || "").trim(), phone: c.phone.trim(), whatsapp: (c.whatsapp || c.phone).trim() },
     bringDate: bring,
     deliverDate: deliver,
     status: "pending",

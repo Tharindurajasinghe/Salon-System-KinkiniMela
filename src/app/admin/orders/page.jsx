@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Eye, Check, X, Printer, Trash2 } from "lucide-react";
+import { Eye, Check, X, Printer, Trash2, MessageCircle } from "lucide-react";
 import Tabs from "@/components/ui/Tabs";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
@@ -146,6 +146,17 @@ export default function OrdersPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <IconBtn title="Details" onClick={() => setDetails(row)}><Eye className="h-4 w-4" /></IconBtn>
+                      {row.rowType !== "bill" && row.customerWhatsapp && (
+                        <a
+                          href={`https://wa.me/${waNumber(row.customerWhatsapp)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Send WhatsApp"
+                          className="rounded-lg p-1.5 text-gray-400 hover:bg-green-50 hover:text-green-600"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </a>
+                      )}
                       {row.rowType !== "bill" && (
                         <>
                           <IconBtn title="Confirm" onClick={() => setStatus(row, "confirm")} className="hover:text-green-600" disabled={row.status === "confirm"}><Check className="h-4 w-4" /></IconBtn>
@@ -285,4 +296,13 @@ function OrderDetails({ row }) {
       )}
     </div>
   );
+}
+
+// Normalize a phone to Sri-Lanka international format for wa.me (no +).
+function waNumber(raw = "") {
+  let n = (raw || "").replace(/\D/g, "");
+  if (!n) return "";
+  if (n.startsWith("0")) n = "94" + n.slice(1);
+  else if (!n.startsWith("94") && n.length <= 9) n = "94" + n;
+  return n;
 }

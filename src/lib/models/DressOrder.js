@@ -19,6 +19,7 @@ const DressOrderSchema = new mongoose.Schema(
       firstName: String,
       lastName: String,
       phone: { type: String, required: true },
+      whatsapp: { type: String, default: "" },
     },
 
     bringDate: { type: String, required: true }, // yyyy-MM-dd (pickup)

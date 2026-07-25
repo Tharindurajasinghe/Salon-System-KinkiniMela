@@ -17,7 +17,7 @@ import { todaySLKey } from "@/lib/utils/timezone";
  */
 export default function BookingModal({ open, item, itemType, onClose }) {
   const { t } = useLanguage();
-  const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", gender: "", date: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", whatsapp: "", waSame: true, gender: "", date: "" });
   const [holidays, setHolidays] = useState(new Set());
   const [slots, setSlots] = useState(null); // null=not loaded, []=none
   const [slotReason, setSlotReason] = useState("");
@@ -30,7 +30,7 @@ export default function BookingModal({ open, item, itemType, onClose }) {
   // Reset whenever a new item is opened.
   useEffect(() => {
     if (open) {
-      setForm({ firstName: "", lastName: "", phone: "", gender: "", date: "" });
+      setForm({ firstName: "", lastName: "", phone: "", whatsapp: "", waSame: true, gender: "", date: "" });
       setSlots(null); setSelectedSlot(""); setSlotReason(""); setError(""); setDone(null);
     }
   }, [open, item?._id]);
@@ -63,7 +63,7 @@ export default function BookingModal({ open, item, itemType, onClose }) {
     try {
       const res = await api.post("/api/bookings", {
         itemType, itemId: item._id,
-        customer: { firstName: form.firstName, lastName: form.lastName, phone: form.phone, gender: form.gender },
+        customer: { firstName: form.firstName, lastName: form.lastName, phone: form.phone, whatsapp: form.waSame ? form.phone : form.whatsapp, gender: form.gender },
         date: form.date, timeSlot: selectedSlot,
       });
       setDone(res);
@@ -106,7 +106,15 @@ export default function BookingModal({ open, item, itemType, onClose }) {
             <input className={field} placeholder={t("common.firstName")} value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
             <input className={field} placeholder={t("common.lastName")} value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
           </div>
-          <input className={field} placeholder={t("common.phone")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <input className={field} placeholder={t("common.phone")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value, whatsapp: form.waSame ? e.target.value : form.whatsapp })} />
+
+          <label className="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" checked={form.waSame} onChange={(e) => setForm({ ...form, waSame: e.target.checked, whatsapp: e.target.checked ? form.phone : "" })} className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400" />
+            WhatsApp same as phone number
+          </label>
+          {!form.waSame && (
+            <input className={field} placeholder="WhatsApp number" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} />
+          )}
 
           <div className="flex gap-2">
             {["male", "female"].map((g) => (

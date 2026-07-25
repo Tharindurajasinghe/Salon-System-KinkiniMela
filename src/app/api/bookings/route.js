@@ -59,6 +59,7 @@ async function postHandler(req) {
         firstName: c.firstName.trim(),
         lastName: (c.lastName || "").trim(),
         phone: c.phone.trim(),
+        whatsapp: (c.whatsapp || c.phone).trim(),
         gender: ["male", "female"].includes(c.gender) ? c.gender : "",
       },
       date: dateKey(b.date),

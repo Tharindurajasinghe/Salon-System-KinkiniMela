@@ -16,7 +16,7 @@ export default function CartPage() {
   const { t } = useLanguage();
   const { items, setQty, remove, clear, total } = useCart();
 
-  const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", pickupDate: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", whatsapp: "", waSame: true, pickupDate: "" });
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(null); // { orderId }
@@ -29,7 +29,7 @@ export default function CartPage() {
     try {
       const res = await api.post("/api/orders", {
         items: items.map((i) => ({ refId: i.refId, qty: i.qty })),
-        customer: { firstName: form.firstName, lastName: form.lastName, phone: form.phone },
+        customer: { firstName: form.firstName, lastName: form.lastName, phone: form.phone, whatsapp: form.waSame ? form.phone : form.whatsapp },
         pickupDate: form.pickupDate,
       });
       clear();
@@ -121,7 +121,14 @@ export default function CartPage() {
               <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder={t("common.firstName")} className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
               <input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} placeholder={t("common.lastName")} className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
             </div>
-            <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder={t("common.phone")} className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
+            <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value, whatsapp: form.waSame ? e.target.value : form.whatsapp })} placeholder={t("common.phone")} className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
+            <label className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" checked={form.waSame} onChange={(e) => setForm({ ...form, waSame: e.target.checked, whatsapp: e.target.checked ? form.phone : "" })} className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400" />
+              WhatsApp same as phone number
+            </label>
+            {!form.waSame && (
+              <input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="WhatsApp number" className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
+            )}
             <label className="mt-3 block text-sm text-gray-600">{t("cart.pickupDate")}</label>
             <input type="date" min={todaySLKey()} value={form.pickupDate} onChange={(e) => setForm({ ...form, pickupDate: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none" />
 
